@@ -1,0 +1,13 @@
+
+# JPEG library
+/jpeg
+
+# Makefiles
+Makefile
+
+# R2 library
+/R2
+
+# svd library
+svd.*
+
