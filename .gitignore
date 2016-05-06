@@ -11,3 +11,9 @@ Makefile
 # svd library
 svd.*
 
+#Object files
+*.o
+
+#Executable
+imgpro
+
