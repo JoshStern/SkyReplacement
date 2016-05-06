@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <vector>
 #include "R2/R2.h"
 #include "R2Pixel.h"
 #include "R2Image.h"
@@ -44,14 +45,16 @@ static char options[] =
 "  -blur <real:sigma>\n"
 "  -sharpen \n"
 "  -matchTranslation <file:other_image>\n"
-"  -matchHomography <file:other_image>\n";
+"  -matchHomography <file:other_image>\n"
+
+"  -sky\n";
 
 
 static void 
 ShowUsage(void)
 {
   // Print usage message and exit
-  fprintf(stderr, "Usage: imgpro input_image output_image [  -option [arg ...] ...]\n");
+  fprintf(stderr, "Usage: imgpro input_image output_image image_count [  -option [arg ...] ...]\n");
   fprintf(stderr, options);
   exit(EXIT_FAILURE);
 }
@@ -146,19 +149,41 @@ main(int argc, char **argv)
   argv++, argc--; // First argument is program name
   char *input_image_name = *argv; argv++, argc--; 
   char *output_image_name = *argv; argv++, argc--; 
+  int image_count = atoi(*argv); argv++, argc--; 
+  printf("Image count: %d\n", image_count);
 
-  // Allocate image
-  R2Image *image = new R2Image();
-  if (!image) {
-    fprintf(stderr, "Unable to allocate image\n");
-    exit(-1);
+  //Just have this so the code doesnt break
+  R2Image* image = new R2Image();
+
+  std::vector<R2Image*> images;
+  char* fname = new char[50];
+
+
+  if(image_count == 1) { // if only one image is to be read, then use the file as a real name, not a base name
+    images.push_back(new R2Image());
+    // Read input image
+    if (!images.at(0)->Read(input_image_name)) {
+      fprintf(stderr, "Unable to read image from %s\n", input_image_name);
+      exit(-1);
+    }
+  }
+  else if(image_count > 1) {
+    for(int i = 0; i < image_count; i++) {
+      images.push_back(new R2Image());
+      if (!images.at(images.size()-1)) {
+        fprintf(stderr, "Unable to allocate image\n");
+        exit(-1);
+      }
+      //Construct file names:
+      sprintf(fname, "%s_%d.jpg", input_image_name, i);
+
+      if (!images.at(images.size()-1)->Read(fname)) {
+        fprintf(stderr, "Unable to read image from %s\n", fname);
+        exit(-1);
+      }
+    }
   }
 
-  // Read input image
-  if (!image->Read(input_image_name)) {
-    fprintf(stderr, "Unable to read image from %s\n", input_image_name);
-    exit(-1);
-  }
 
   // Initialize sampling method
   int sampling_method = R2_IMAGE_POINT_SAMPLING;
@@ -219,6 +244,14 @@ main(int argc, char **argv)
       image->blendOtherImageHomography(other_image);
       delete other_image;
     }
+    else if (!strcmp(*argv, "-sky")) {
+      CheckOption(*argv, argc, 2);
+      double factor = atof(argv[1]);
+      argv += 2, argc -=2;
+      for(int i = 0; i < image_count; i++)
+        images[i]->Brighten(factor);
+
+    }
     else {
       // Unrecognized program argument
       fprintf(stderr, "image: invalid option: %s\n", *argv);
@@ -227,10 +260,25 @@ main(int argc, char **argv)
   }
 
   // Write output image
-  if (!image->Write(output_image_name)) {
-    fprintf(stderr, "Unable to read image from %s\n", output_image_name);
-    exit(-1);
+  if(image_count == 1) {
+    if (!images[0]->Write(output_image_name)) {
+      fprintf(stderr, "Unable to read image from %s\n", output_image_name);
+      exit(-1);
+    }
   }
+  else if(image_count > 1) {
+    for(int i=0; i<image_count; i++) {
+
+      //Construct name
+      sprintf(fname, "%s_%d.jpg", output_image_name, i);
+
+      if (!images[i]->Write(fname)) {
+        fprintf(stderr, "Unable to read image from %s\n", fname);
+        exit(-1);
+      }
+    }
+  }
+  
 
   // Delete image
   delete image;
