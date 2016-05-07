@@ -29,6 +29,8 @@ class R2Pixel {
   bool IsWhite(void) const;
   bool operator==(const R2Pixel& pixel) const;
   bool operator!=(const R2Pixel& pixel) const;
+  bool operator<(const R2Pixel& pixel) const;
+  bool operator>(const R2Pixel& pixel) const;
 
   // Manipulation functions/operations
   void SetRed(double red);
@@ -376,6 +378,19 @@ operator!=(const R2Pixel& pixel) const
 {
   // Return whether pixel is not equal
   return ((c[0] != pixel.c[0]) || (c[1] != pixel.c[1]) || (c[2] != pixel.c[2]) || (c[3] != pixel.c[3]));
+}
+
+inline bool R2Pixel::
+operator<(const R2Pixel& pixel) const
+{
+  // Return whether pixel is not equal
+  return ((c[0] < pixel.c[0]) && (c[1] < pixel.c[1]) && (c[2] < pixel.c[2]));
+}
+inline bool R2Pixel::
+operator>(const R2Pixel& pixel) const
+{
+  // Return whether pixel is not equal
+  return ((c[0] > pixel.c[0]) && (c[1] > pixel.c[1]) && (c[2] > pixel.c[2]));
 }
 
 

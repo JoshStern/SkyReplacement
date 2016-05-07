@@ -245,11 +245,9 @@ main(int argc, char **argv)
       delete other_image;
     }
     else if (!strcmp(*argv, "-sky")) {
-      CheckOption(*argv, argc, 2);
-      double factor = atof(argv[1]);
-      argv += 2, argc -=2;
+      argv++, argc--;
       for(int i = 0; i < image_count; i++)
-        images[i]->Brighten(factor);
+        images[i]->BinaryThreshold();
 
     }
     else {

@@ -265,6 +265,33 @@ Brighten(double factor)
 }
 
 void R2Image::
+BinaryThreshold() {
+
+  //First blur the image:
+
+  R2Pixel thresh(0,0,0,1);
+  //Do a general search of image to find a decent max pixel
+  for (int i = 0; i < width; i+=10) {
+    for (int j = 0;  j < height; j+=10) {
+      if(Pixel(i,j) > thresh)
+        thresh = Pixel(i,j);
+    }
+  }
+
+  thresh *= 0.8;
+  printf("THRESHOLD VALUE FOUND: (%f, %f, %f)\n", thresh.Red(), thresh.Green(), thresh.Blue());
+
+  for (int i = 0; i < width; i++) {
+    for (int j = 0;  j < height; j++) {
+      if(Pixel(i,j) > thresh)
+        Pixel(i,j).Reset(1,1,1,1);
+      else
+        Pixel(i,j).Reset(0,0,0,1);
+    }
+  }
+}
+
+void R2Image::
 SobelX(void)
 {
 	// Apply the Sobel oprator to the image in X direction
@@ -308,10 +335,60 @@ ChangeSaturation(double factor)
 void R2Image::
 Blur(double sigma)
 {
-  // Gaussian blur of the image. Separable solution is preferred
-  
-  // FILL IN IMPLEMENTATION HERE (REMOVE PRINT STATEMENT WHEN DONE)
-  fprintf(stderr, "Blur(%g) not implemented\n", sigma);
+  //Counter variables
+  int i, j, k;
+  // Temporary image
+  R2Image finalImage(width, height);
+  // Temporary pixel
+  R2Pixel tempPix(0.0,0.0,0.0,1.0);
+  //Size of kernel (one half)
+  int size = (int)(3 * sigma + 1);
+  double* kern = new double[size];
+  double sqrt2Pi = 2.5066283;
+
+  // Calculate Kernel
+  for(i = 0; i < size; i++){
+    kern[i] = (1.0 / (sigma*sqrt2Pi))*exp(-(i*i) / (2.0 * sigma * sigma));
+  }
+
+  //First pass (X axis)
+  for(i = 0; i < height; i++){
+    for(j = 0; j < width; j++){
+      tempPix.Reset(0.0,0.0,0.0,1.0);
+      for(k = -size + 1; k < size; k++) { 
+        if(j+k < 0){ //If its less than zero, assume it's the zero
+          tempPix += Pixel(0, i) * kern[abs(k)];
+        }
+        else if(j+k >= width){ // if it's greater than the width, just assume it's the edge pixel
+          tempPix += Pixel(width-1, i) * kern[abs(k)];
+        }
+        else{
+          tempPix += Pixel(j+k, i) * kern[abs(k)];
+        }
+      }    
+      finalImage.SetPixel(j, i, tempPix);        
+    }
+  }
+  //Second pass (Y axis)
+  for(i = 0; i < height; i++){
+    for(j = 0; j < width; j++){
+      tempPix.Reset(0.0,0.0,0.0,1.0);
+      for(k = -size + 1; k < size; k++) {
+        if(i+k < 0){
+          tempPix += finalImage.Pixel(j, 0) * kern[abs(k)];
+        }
+        else if(i+k >= height){
+          tempPix += finalImage.Pixel(j, height-1) * kern[abs(k)];
+        }
+        else {
+          tempPix += finalImage.Pixel(j, i+k) * kern[abs(k)];
+        }
+      }    
+      SetPixel(j, i, tempPix);    
+    }
+  }
+
+  delete [] kern;
 }
 
 
