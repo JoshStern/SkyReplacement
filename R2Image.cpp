@@ -267,28 +267,71 @@ Brighten(double factor)
 void R2Image::
 BinaryThreshold() {
 
+  R2Image originalImg = *this;
+  R2Image binaryImg = *this;  
+
   //First blur the image:
+  this->Blur(5.0); 
 
   R2Pixel thresh(0,0,0,1);
   //Do a general search of image to find a decent max pixel
-  for (int i = 0; i < width; i+=10) {
+  /*for (int i = 0; i < width; i+=10) {
     for (int j = 0;  j < height; j+=10) {
       if(Pixel(i,j) > thresh)
         thresh = Pixel(i,j);
     }
+  }*/
+
+  float blue_thresh = 0.0f; 
+  // only works for blue skys... but...
+
+  // search for blue thresh
+  for (int i = 0; i < width; i+=10) {
+    for (int j = 0;  j < height; j+=10) {
+      if(Pixel(i,j).Blue() > blue_thresh)
+        blue_thresh = Pixel(i,j).Blue();
+    }
   }
 
-  thresh *= 0.8;
-  printf("THRESHOLD VALUE FOUND: (%f, %f, %f)\n", thresh.Red(), thresh.Green(), thresh.Blue());
+  blue_thresh *= 0.8; 
+  //thresh *= 0.2;
+  //printf("THRESHOLD VALUE FOUND: (%f, %f, %f)\n", thresh.Red(), thresh.Green(), thresh.Blue());
+
+  printf("THRESHOLD BLUE: %f\n", blue_thresh); 
+
+  float th;
+  float bl;
+  R2Pixel white(1, 1, 1, 1); 
+  R2Pixel blk(0, 0, 0, 1); 
 
   for (int i = 0; i < width; i++) {
     for (int j = 0;  j < height; j++) {
-      if(Pixel(i,j) > thresh)
-        Pixel(i,j).Reset(1,1,1,1);
+      bl = (float) Pixel(i,j).Blue(); 
+      //if(Pixel(i,j) > thresh)
+      if(bl > blue_thresh)
+        binaryImg.Pixel(i,j) = white;
       else
-        Pixel(i,j).Reset(0,0,0,1);
+        binaryImg.Pixel(i,j) = blk;
     }
   }
+
+
+  // Apply binary image to original image
+
+  for(int i = 0; i < width; i++){
+    for(int j = 0; j < height; j++){
+
+      if(binaryImg.Pixel(i,j) == blk){
+        Pixel(i,j) = originalImg.Pixel(i,j);
+      }
+      else{
+        Pixel(i,j) = white; 
+      }
+
+    }
+  }
+
+
 }
 
 void R2Image::
