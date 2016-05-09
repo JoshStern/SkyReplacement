@@ -224,7 +224,8 @@ main(int argc, char **argv)
       CheckOption(*argv, argc, 2);
       double sigma = atof(argv[1]);
       argv += 2, argc -= 2;
-      image->Blur(sigma);
+      for(int i = 0; i < image_count; i++)
+        images[i]->Blur(sigma);
     }
     else if (!strcmp(*argv, "-sharpen")) {
       argv++, argc--;
