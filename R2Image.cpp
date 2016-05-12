@@ -8,6 +8,8 @@
 #include "R2Pixel.h"
 #include "R2Image.h"
 #include "svd.h"
+#include <thread>
+#include <iostream>
 
 
 
@@ -122,7 +124,6 @@ operator=(const R2Image& image)
   // Return image
   return *this;
 }
-
 
 void R2Image::
 svdTest(void)
@@ -370,15 +371,66 @@ ChangeSaturation(double factor)
   fprintf(stderr, "ChangeSaturation(%g) not implemented\n", factor);
 }
 
+void R2Image::
+BlurXThread(R2Image* input, R2Image* output, double* kern, int size, int startRow, int endRow) {
+  int i, j, k;
+  R2Pixel tempPix(0,0,0,1);
+
+  //First pass (X axis)
+  for(i = startRow; i < endRow; i++){
+    for(j = 0; j < input->width; j++){
+      tempPix.Reset(0.0,0.0,0.0,1.0);
+      for(k = -size + 1; k < size; k++) { 
+        if(j+k < 0){ //If its less than zero, assume it's the zero
+          tempPix += input->Pixel(0, i) * kern[abs(k)];
+        }
+        else if(j+k >= input->width){ // if it's greater than the width, just assume it's the edge pixel
+          tempPix += input->Pixel((input->width)-1, i) * kern[abs(k)];
+        }
+        else{
+          tempPix += input->Pixel(j+k, i) * kern[abs(k)];
+        }
+      }    
+      output->SetPixel(j, i, tempPix);        
+    }
+  }
+}
+
+void R2Image::
+BlurYThread(R2Image* input, R2Image* output, double* kern, int size, int startCol, int endCol) {
+  int i, j, k;
+  R2Pixel tempPix(0,0,0,1);
+
+  // Second pass (Y axis)
+  for(i = 0; i < input->height; i++){
+    for(j = startCol; j < endCol; j++){
+      tempPix.Reset(0.0,0.0,0.0,1.0);
+      for(k = -size + 1; k < size; k++) {
+        if(i+k < 0){
+          tempPix += input->Pixel(j, 0) * kern[abs(k)];
+        }
+        else if(i+k >= input->height){
+          tempPix += input->Pixel(j, input->height-1) * kern[abs(k)];
+        }
+        else {
+          tempPix += input->Pixel(j, i+k) * kern[abs(k)];
+        }
+      }    
+      output->SetPixel(j, i, tempPix);    
+    }
+  }
+}
 
 // Linear filtering ////////////////////////////////////////////////
 void R2Image::
 Blur(double sigma)
 {
-  //Counter variables
+
+
+    //Counter variables
   int i, j, k;
   // Temporary image
-  R2Image finalImage(width, height);
+  R2Image* tempImage = new R2Image(width, height);
   // Temporary pixel
   R2Pixel tempPix(0.0,0.0,0.0,1.0);
   //Size of kernel (one half)
@@ -391,44 +443,31 @@ Blur(double sigma)
     kern[i] = (1.0 / (sigma*sqrt2Pi))*exp(-(i*i) / (2.0 * sigma * sigma));
   }
 
-  //First pass (X axis)
-  for(i = 0; i < height; i++){
-    for(j = 0; j < width; j++){
-      tempPix.Reset(0.0,0.0,0.0,1.0);
-      for(k = -size + 1; k < size; k++) { 
-        if(j+k < 0){ //If its less than zero, assume it's the zero
-          tempPix += Pixel(0, i) * kern[abs(k)];
-        }
-        else if(j+k >= width){ // if it's greater than the width, just assume it's the edge pixel
-          tempPix += Pixel(width-1, i) * kern[abs(k)];
-        }
-        else{
-          tempPix += Pixel(j+k, i) * kern[abs(k)];
-        }
-      }    
-      finalImage.SetPixel(j, i, tempPix);        
-    }
-  }
-  //Second pass (Y axis)
-  for(i = 0; i < height; i++){
-    for(j = 0; j < width; j++){
-      tempPix.Reset(0.0,0.0,0.0,1.0);
-      for(k = -size + 1; k < size; k++) {
-        if(i+k < 0){
-          tempPix += finalImage.Pixel(j, 0) * kern[abs(k)];
-        }
-        else if(i+k >= height){
-          tempPix += finalImage.Pixel(j, height-1) * kern[abs(k)];
-        }
-        else {
-          tempPix += finalImage.Pixel(j, i+k) * kern[abs(k)];
-        }
-      }    
-      SetPixel(j, i, tempPix);    
-    }
-  }
+  //Spawn X pass threads:
+  std::thread X1(R2Image::BlurXThread, this, tempImage, kern, size, 0, height/4);
+  std::thread X2(R2Image::BlurXThread, this, tempImage, kern, size, (height/4),height/2);
+  std::thread X3(R2Image::BlurXThread, this, tempImage, kern, size, (height/2),(3*height)/4);
+  std::thread X4(R2Image::BlurXThread, this, tempImage, kern, size, ((3*height)/4),height);
+
+  X1.join();
+  X2.join();
+  X3.join();
+  X4.join();
+
+  //Run over Y 
+  std::thread Y1(R2Image::BlurYThread, tempImage, this, kern, size, 0, width/4);
+  std::thread Y2(R2Image::BlurYThread, tempImage, this, kern, size, (width/4),width/2);
+  std::thread Y3(R2Image::BlurYThread, tempImage, this, kern, size, (width/2),(3*width)/4);
+  std::thread Y4(R2Image::BlurYThread, tempImage, this, kern, size, ((3*width)/4),width);
+
+  Y1.join();
+  Y2.join();
+  Y3.join();
+  Y4.join();
+
 
   delete [] kern;
+  delete tempImage;
 }
 
 

@@ -72,6 +72,8 @@ class R2Image {
   void SobelY();
   void LoG();
   void Blur(double sigma);
+  static void BlurXThread(R2Image* input, R2Image* output, double* kern, int size, int startRow, int endRow);
+  static void BlurYThread(R2Image* input, R2Image* output, double* kern, int size, int startCol, int endCol);
   void Harris(double sigma);
   void Sharpen(void);
   void SkyReplace(R2Image* skyImage);
