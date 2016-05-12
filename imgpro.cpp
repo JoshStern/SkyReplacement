@@ -152,9 +152,6 @@ main(int argc, char **argv)
   int image_count = atoi(*argv); argv++, argc--; 
   printf("Image count: %d\n", image_count);
 
-  //Just have this so the code doesnt break
-  R2Image* image = new R2Image();
-
   std::vector<R2Image*> images;
   char* fname = new char[50];
 
@@ -194,31 +191,39 @@ main(int argc, char **argv)
       CheckOption(*argv, argc, 2);
       double factor = atof(argv[1]);
       argv += 2, argc -=2;
-      image->Brighten(factor);
+      for(int i = 0; i < image_count; i++)
+        images[i]->Brighten(factor);
     }
 	else if (!strcmp(*argv, "-sobelX")) {
       argv++, argc--;
-      image->SobelX();
+      for(int i = 0; i < image_count; i++)
+        images[i]->SobelX();
     }
 	else if (!strcmp(*argv, "-sobelY")) {
       argv++, argc--;
-      image->SobelY();
+      for(int i = 0; i < image_count; i++)
+        images[i]->SobelY();
     }
 	else if (!strcmp(*argv, "-log")) {
       argv++, argc--;
-      image->LoG();
+      for(int i = 0; i < image_count; i++)
+        images[i]->LoG();
     }
     else if (!strcmp(*argv, "-saturation")) {
       CheckOption(*argv, argc, 2);
       double factor = atof(argv[1]);
       argv += 2, argc -= 2;
-      image->ChangeSaturation(factor);
+
+      for(int i = 0; i < image_count; i++)
+        images[i]->ChangeSaturation(factor);
     }
 	else if (!strcmp(*argv, "-harris")) {
       CheckOption(*argv, argc, 2);
       double sigma = atof(argv[1]);
       argv += 2, argc -= 2;
-      image->Harris(sigma);
+
+      for(int i = 0; i < image_count; i++)
+      images[i]->Harris(sigma);
     }
     else if (!strcmp(*argv, "-blur")) {
       CheckOption(*argv, argc, 2);
@@ -229,20 +234,28 @@ main(int argc, char **argv)
     }
     else if (!strcmp(*argv, "-sharpen")) {
       argv++, argc--;
-      image->Sharpen();
+
+      for(int i = 0; i < image_count; i++)
+        images[i]->Sharpen();
     }
     else if (!strcmp(*argv, "-matchTranslation")) {
       CheckOption(*argv, argc, 2);
       R2Image *other_image = new R2Image(argv[1]);
       argv += 2, argc -= 2;
-      image->blendOtherImageTranslated(other_image);
+
+      for(int i = 0; i < image_count; i++)
+        images[i]->blendOtherImageTranslated(other_image);
+      
       delete other_image;
     }
     else if (!strcmp(*argv, "-matchHomography")) {
       CheckOption(*argv, argc, 2);
       R2Image *other_image = new R2Image(argv[1]);
       argv += 2, argc -= 2;
-      image->blendOtherImageHomography(other_image);
+
+      for(int i = 0; i < image_count; i++)
+        images[i]->blendOtherImageHomography(other_image);
+
       delete other_image;
     }
     else if (!strcmp(*argv, "-sky")) {
@@ -252,6 +265,8 @@ main(int argc, char **argv)
 
       for(int i = 0; i < image_count; i++)
         images[i]->SkyReplace(other_image);
+
+      delete other_image;
 
     }
     else {
@@ -283,7 +298,9 @@ main(int argc, char **argv)
   
 
   // Delete image
-  delete image;
+  for(int i = 0; i < image_count; i++) {
+    delete images[i];
+  }
 
   // Return success
   return EXIT_SUCCESS;

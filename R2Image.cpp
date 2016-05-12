@@ -268,9 +268,6 @@ Brighten(double factor)
 void R2Image::
 BinaryThreshold() {
 
-  R2Image originalImg = *this;
-  R2Image binaryImg = *this;  
-
   //First blur the image:
   this->Blur(5.0); 
 
@@ -321,13 +318,14 @@ BinaryThreshold() {
 void R2Image::
 SkyReplace(R2Image* skyImage) {
 
-  R2Image binaryImage(*this);
+  R2Image* binaryImage = new R2Image(*this);
 
-  binaryImage.BinaryThreshold();
+  binaryImage->BinaryThreshold();
 
   for(int i=0; i<height; i++) {
     for(int j=0; j<width; j++) {
-      SetPixel(j,i,binaryImage.Pixel(j,i)*skyImage->Pixel(j/2,i/2));
+      if(binaryImage->Pixel(j,i) == R2Pixel(1,1,1,1))
+        SetPixel(j,i, binaryImage->Pixel(j,i));
     }
   }
 }
