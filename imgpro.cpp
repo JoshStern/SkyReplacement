@@ -300,6 +300,7 @@ main(int argc, char **argv)
   // Delete image
   for(int i = 0; i < image_count; i++) {
     delete images[i];
+
   }
 
   // Return success

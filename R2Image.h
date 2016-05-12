@@ -67,6 +67,8 @@ class R2Image {
   // show how SVD works
   void svdTest();
 
+  void constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix, double** H);
+
   // Linear filtering operations
   void SobelX();
   void SobelY();

@@ -244,6 +244,46 @@ svdTest(void)
 }
 
 
+void R2Image::constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix, double** H){
+  double sv[10];
+  int i, j,k;
+
+  //Compute odd rows:
+  for(j=1; j<=8; j+=2) {
+    for(i=1; i<=3; i++)
+      M[j][i] = 0.0;
+    for(i=4,k=1; i<=6; i++,k++)
+      M[j][i] = (-AMatch[(j+1)/2][3])*A[(j+1)/2][k];
+    for(i=7,k=1; i<=9; i++,k++)
+      M[j][i] = (AMatch[(j+1)/2][2])*A[(j+1)/2][k];
+  }
+  //Compute Even rows
+  for(j=2; j<=8; j+=2) {
+    for(i=1,k=1; i<=3; i++,k++)
+      M[j][i] = (AMatch[j/2][3])*A[j/2][k];
+    for(i=4; i<=6; i++)
+      M[j][i] = 0;
+    for(i=7,k=1; i<=9; i++,k++)
+      M[j][i] = (-AMatch[j/2][1])*A[j/2][k];      
+  }
+
+  // compute the SVD
+  svdcmp(M, 8, 9, sv, nullspaceMatrix);
+
+  //Find min 
+  int minsvIndex = 1;
+  for(i=2; i<10; i++) {
+    if(sv[i] < sv[minsvIndex])
+      minsvIndex = i;
+  }
+  for(i=1; i<=3; i++) {
+    for(j=1; j<=3; j++) {
+      H[i][j] = nullspaceMatrix[3*(i-1) + j][minsvIndex];
+    }
+  }
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////
 // Image processing functions
