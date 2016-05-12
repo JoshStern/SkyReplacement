@@ -309,29 +309,26 @@ BinaryThreshold() {
       bl = (float) Pixel(i,j).Blue(); 
       //if(Pixel(i,j) > thresh)
       if(bl > blue_thresh)
-        binaryImg.Pixel(i,j) = white;
+        SetPixel(i,j, white);
       else
-        binaryImg.Pixel(i,j) = blk;
+        SetPixel(i,j, blk);
     }
   }
 
+}
 
-  // Apply binary image to original image
+void R2Image::
+SkyReplace(R2Image* skyImage) {
 
-  for(int i = 0; i < width; i++){
-    for(int j = 0; j < height; j++){
+  R2Image binaryImage(*this);
 
-      if(binaryImg.Pixel(i,j) == blk){
-        Pixel(i,j) = originalImg.Pixel(i,j);
-      }
-      else{
-        Pixel(i,j) = white; 
-      }
+  binaryImage.BinaryThreshold();
 
+  for(int i=0; i<height; i++) {
+    for(int j=0; j<width; j++) {
+      SetPixel(j,i,binaryImage.Pixel(j,i)*skyImage->Pixel(j/2,i/2));
     }
   }
-
-
 }
 
 void R2Image::

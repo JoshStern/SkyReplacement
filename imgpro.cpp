@@ -47,7 +47,7 @@ static char options[] =
 "  -matchTranslation <file:other_image>\n"
 "  -matchHomography <file:other_image>\n"
 
-"  -sky\n";
+"  -sky <file:other_image>\n";
 
 
 static void 
@@ -245,9 +245,12 @@ main(int argc, char **argv)
       delete other_image;
     }
     else if (!strcmp(*argv, "-sky")) {
-      argv++, argc--;
+      CheckOption(*argv, argc, 2);
+      R2Image *other_image = new R2Image(argv[1]);
+      argv += 2, argc -= 2;
+
       for(int i = 0; i < image_count; i++)
-        images[i]->BinaryThreshold();
+        images[i]->SkyReplace(other_image);
 
     }
     else {

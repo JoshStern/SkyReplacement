@@ -74,6 +74,7 @@ class R2Image {
   void Blur(double sigma);
   void Harris(double sigma);
   void Sharpen(void);
+  void SkyReplace(R2Image* skyImage);
 
   // further operations
   void blendOtherImageTranslated(R2Image * otherImage);
