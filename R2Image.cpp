@@ -367,33 +367,46 @@ BinaryThreshold() {
         SetPixel(i,j, white);
       }
       else {
-        // llBl = (float) Pixel(i-5,j-5).Blue();
-        // lrBl = (float) Pixel(i-5,j+5).Blue();
-        // ulBl = (float) Pixel(i+5,j-5).Blue();
-        // urBl = (float) Pixel(i+5,j+5).Blue();
-        blRGB = Pixel(i,j);
-        llBlRGB = Pixel(i-5,j-5);
-        lrBlRGB = Pixel(i-5,j+5);
-        ulBlRGB = Pixel(i+5,j-5);
-        urBlRGB = Pixel(i+5,j+5);
-        float redDiff = fabs(Pixel(i,j).Red() - Pixel(i-5,j-5).Red());
-        float greenDiff = fabs(Pixel(i,j).Green() - Pixel(i-5,j-5).Green());
-        // nextBl = (float) Pixel(i+10,j+10).Blue();
-        if ((fabs(blRGB.Blue() - llBlRGB.Blue()) < 1.0) &&
-            (fabs(blRGB.Blue() - lrBlRGB.Blue()) < 1.0) &&
-            (fabs(blRGB.Blue() - ulBlRGB.Blue()) < 1.0) &&
-            (fabs(blRGB.Blue() - urBlRGB.Blue()) < 1.0) &&
-            (redDiff < 0.2) && (greenDiff < 0.2)) {
-          // std::cout << bl << "\n";
-          // std::cout << prevBl << "\n";
-          SetPixel(i,j, white);
-        }
-        else {
           SetPixel(i,j, blk);
-        }
       }
     }
   }
+
+  for (int i = 0; i < width; i++) {
+    for (int j = 0;  j < height; j++) {
+      int whiteCount = 0;
+      for (int k = -10; k < 10; k++) { // 441 pixels total
+        for (int l = -10;  l < 10; l++) {
+          if (Pixel(i+k,j+l) == R2Pixel(1,1,1,1)) { // white
+            whiteCount++;
+          }
+        }
+      }
+      if ((float)whiteCount/441.0 > 0.4) { // percentage over 50%
+        SetPixel(i,j, white);
+      }
+
+    }
+  }
+
+
+    // blRGB = Pixel(i,j);
+    // llBlRGB = Pixel(i-5,j-5);
+    // lrBlRGB = Pixel(i-5,j+5);
+    // ulBlRGB = Pixel(i+5,j-5);
+    // urBlRGB = Pixel(i+5,j+5);
+    // // nextBl = (float) Pixel(i+10,j+10).Blue();
+    // if ((fabs(blRGB.Blue() - llBlRGB.Blue()) < 0.5) &&
+    //     (fabs(blRGB.Blue() - lrBlRGB.Blue()) < 0.5) &&
+    //     (fabs(blRGB.Blue() - ulBlRGB.Blue()) < 0.5) &&
+    //     (fabs(blRGB.Blue() - urBlRGB.Blue()) < 0.5) &&
+    //     (llBlRGB.Blue() + llBlRGB.Red() + llBlRGB.Green() +
+    //      lrBlRGB.Blue() + lrBlRGB.Red() + lrBlRGB.Green() +
+    //      ulBlRGB.Blue() + ulBlRGB.Red() + ulBlRGB.Green() +
+    //      urBlRGB.Blue() + urBlRGB.Red() + urBlRGB.Green() != 0) ) {
+    //   std::cout << ulBlRGB.Blue() << "\n";
+
+
 }
 
 void R2Image::
