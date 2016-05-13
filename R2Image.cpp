@@ -342,21 +342,10 @@ BinaryThreshold() {
 
   printf("THRESHOLD BLUE: %f\n", blue_thresh);
 
-  float bl;
-  float llBl; // lower left
-  float lrBl; // lower right
-  float ulBl; // upper left
-  float urBl; // upper right
-
-  R2Pixel blRGB;
-  R2Pixel llBlRGB;
-  R2Pixel lrBlRGB;
-  R2Pixel ulBlRGB;
-  R2Pixel urBlRGB;
-
   R2Pixel white(1, 1, 1, 1);
   R2Pixel blk(0, 0, 0, 1);
 
+  float bl;
   // R2Image imgCopy(*this);
 
   for (int i = 0; i < width; i++) {
@@ -374,38 +363,47 @@ BinaryThreshold() {
 
   for (int i = 0; i < width; i++) {
     for (int j = 0;  j < height; j++) {
-      int whiteCount = 0;
-      for (int k = -10; k < 10; k++) { // 441 pixels total
-        for (int l = -10;  l < 10; l++) {
-          if (Pixel(i+k,j+l) == R2Pixel(1,1,1,1)) { // white
-            whiteCount++;
+      if (Pixel(i,j) == R2Pixel(0,0,0,1)) { // if black
+        int whiteCount = 0;
+        for (int k = -10; k < 10; k++) { // 441 pixels total
+          for (int l = -10;  l < 10; l++) {
+            if (Pixel(i+k,j+l) == R2Pixel(1,1,1,1)) { // white
+              whiteCount++;
+            }
           }
         }
+        if ((float)whiteCount/441.0 > 0.4) { // percentage over 50%
+          SetPixel(i,j, white);
+        }
       }
-      if ((float)whiteCount/441.0 > 0.4) { // percentage over 50%
-        SetPixel(i,j, white);
-      }
-
     }
   }
 
+  // float llBl; // lower left
+  // float lrBl; // lower right
+  // float ulBl; // upper left
+  // float urBl; // upper right
+  // R2Pixel blRGB;
+  // R2Pixel llBlRGB;
+  // R2Pixel lrBlRGB;
+  // R2Pixel ulBlRGB;
+  // R2Pixel urBlRGB;
 
-    // blRGB = Pixel(i,j);
-    // llBlRGB = Pixel(i-5,j-5);
-    // lrBlRGB = Pixel(i-5,j+5);
-    // ulBlRGB = Pixel(i+5,j-5);
-    // urBlRGB = Pixel(i+5,j+5);
-    // // nextBl = (float) Pixel(i+10,j+10).Blue();
-    // if ((fabs(blRGB.Blue() - llBlRGB.Blue()) < 0.5) &&
-    //     (fabs(blRGB.Blue() - lrBlRGB.Blue()) < 0.5) &&
-    //     (fabs(blRGB.Blue() - ulBlRGB.Blue()) < 0.5) &&
-    //     (fabs(blRGB.Blue() - urBlRGB.Blue()) < 0.5) &&
-    //     (llBlRGB.Blue() + llBlRGB.Red() + llBlRGB.Green() +
-    //      lrBlRGB.Blue() + lrBlRGB.Red() + lrBlRGB.Green() +
-    //      ulBlRGB.Blue() + ulBlRGB.Red() + ulBlRGB.Green() +
-    //      urBlRGB.Blue() + urBlRGB.Red() + urBlRGB.Green() != 0) ) {
-    //   std::cout << ulBlRGB.Blue() << "\n";
-
+  // blRGB = Pixel(i,j);
+  // llBlRGB = Pixel(i-5,j-5);
+  // lrBlRGB = Pixel(i-5,j+5);
+  // ulBlRGB = Pixel(i+5,j-5);
+  // urBlRGB = Pixel(i+5,j+5);
+  // // nextBl = (float) Pixel(i+10,j+10).Blue();
+  // if ((fabs(blRGB.Blue() - llBlRGB.Blue()) < 0.5) &&
+  //     (fabs(blRGB.Blue() - lrBlRGB.Blue()) < 0.5) &&
+  //     (fabs(blRGB.Blue() - ulBlRGB.Blue()) < 0.5) &&
+  //     (fabs(blRGB.Blue() - urBlRGB.Blue()) < 0.5) &&
+  //     (llBlRGB.Blue() + llBlRGB.Red() + llBlRGB.Green() +
+  //      lrBlRGB.Blue() + lrBlRGB.Red() + lrBlRGB.Green() +
+  //      ulBlRGB.Blue() + ulBlRGB.Red() + ulBlRGB.Green() +
+  //      urBlRGB.Blue() + urBlRGB.Red() + urBlRGB.Green() != 0) ) {
+  //   std::cout << ulBlRGB.Blue() << "\n";
 
 }
 
@@ -522,7 +520,8 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
   return HomogRANSAC(points, outPoints, 50);
 }
 
-double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
+double* R2Image::
+HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
   const int TRIAL_NUMBER = 200;
   //Allocate necessary memory:
   double** A = dmatrix(1,4,1,3);
@@ -532,7 +531,8 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   double** nullspaceMatrix = dmatrix(1,9,1,9);
   double* HBest = new double[9];
 
-  int j, i, k, c = 0, maxC = -1;
+  int j, i, c = 0, maxC = -1;
+  // int k;
   int p[4];
   double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
   double pX, pY, diffX, diffY;
@@ -603,7 +603,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
 void R2Image::
 SobelX(void)
 {
-  int i,j;
+  int i, j;
 
   double kern[3][3] = {{1.0,0.0,-1.0},
                        {2.0,0.0,-2.0},
@@ -760,10 +760,10 @@ BlurYThread(R2Image* input, R2Image* output, double* kern, int size, int startCo
 void R2Image::
 Blur(double sigma)
 {
+  //Counter variables
+  int i;
+  // int j, k;
 
-
-    //Counter variables
-  int i, j, k;
   // Temporary image
   R2Image* tempImage = new R2Image(width, height);
   // Temporary pixel
@@ -876,7 +876,8 @@ SelectPoints(int* pm, int* out, int n) {
 void R2Image::
 Feature(double sigma, int* selectedPoints, int NSELECTED)
 {
-  int i, c, p;
+  int i;
+  // int c, p;
 
   int* pointMap = new int[npixels];
 
@@ -891,8 +892,8 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   HarrisImage.Harris(sigma);
 
   HarrisImage.QuickSort(pointMap, 1, npixels-2);
-  int x = pointMap[0] % width;
-  int y = pointMap[0] / width;
+  // int x = pointMap[0] % width;
+  // int y = pointMap[0] / width;
 
   HarrisImage.SelectPoints(pointMap, selectedPoints, NSELECTED);
 
@@ -912,7 +913,6 @@ Harris(double sigma)
   R2Image Ix2(width, height);
   R2Image Iy2(width, height);
   R2Image Ixy(width, height);
-
 
   Iy.SobelY();
   Ix.SobelX();
