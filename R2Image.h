@@ -86,7 +86,7 @@ class R2Image {
   void Harris(double sigma);
   void Sharpen(void);
   void SkyReplace(std::vector<R2Image*>* imageList);
-  void TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints);
+  double* TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints);
   double* HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED);
 
   // further operations

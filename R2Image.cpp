@@ -357,32 +357,56 @@ BinaryThreshold() {
         SetPixel(i,j, blk);
     }
   }
-
 }
 
 void R2Image::
 SkyReplace(vector<R2Image*>* imageList) {
 
-  R2Image* binaryImage = new R2Image(*this);
 
   vector<R2Image*> images = *imageList;
 
+  R2Image* binaryImage = new R2Image(*images[0]);
+
+  double* H = new double[9];
+
   int* prevPointList = new int[50];
   int* currentPointList = new int[50];
+  double x, y, z;
 
+  images.at(0)->Feature(2, prevPointList, 50);
+  H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
 
-  for(int i = 0; i < images.size(); i++){
-    // If first image then do this stuff
-    if(i == 0){
-      images.at(0)->Feature(2, prevPointList, 50);
-      images.at(i)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
-    }
-    else {
+  binaryImage->BinaryThreshold();
+  for(int j=0; j<images.at(0)->width; j++) {
+    for(int k=0;k<images.at(0)->height;k++) {
+      if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
+        images.at(0)->SetPixel(j,k, Pixel(j,k));
+      }
     }
   }
+
+
+  // for(int j=0; j<images.at(0)->width; j++) {
+  //   for(int k=0;k<images.at(0)->height;k++) {
+  //     if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
+  //       x = j*H[0] + k*H[1] + 1*H[2];
+  //       y = j*H[3] + k*H[4] + 1*H[5];
+  //       z = j*H[6] + k*H[7] + 1*H[8];
+
+  //       x /= z; y /=z;
+
+  //       images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
+  //     }
+  //   }
+  // }
+
+  delete [] H;
+  delete binaryImage;
+  delete [] prevPointList;
+  delete [] currentPointList;
 }
 
-void R2Image::
+double* R2Image::
 TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
 
   const int KERNEL_SIZE = 4;
@@ -428,9 +452,8 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
     outPoints[i] = minPoint;
   }
 
-  double* H = HomogRANSAC(points, outPoints, 50);
+  return HomogRANSAC(points, outPoints, 50);
 
-  printf("%5.2f %5.2f %5.2f \n %5.2f %5.2f %5.2f \n %5.2f %5.2f %5.2f\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]);
 
 }
 

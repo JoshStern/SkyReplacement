@@ -267,8 +267,6 @@ main(int argc, char **argv)
 
       other_image->SkyReplace(images);
 
-      delete other_image;
-
     }
     else {
       // Unrecognized program argument
