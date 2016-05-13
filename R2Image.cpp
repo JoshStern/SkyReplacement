@@ -282,7 +282,7 @@ double* R2Image::constructHomographyMat(double** A, double** AMatch, double** M,
   }
 
   for(i=0; i<9; i++) {
-    H[i] = nullspaceMatrix[i][minsvIndex];
+    H[i] = nullspaceMatrix[i+1][minsvIndex];
   }
   return H;
 
@@ -386,7 +386,6 @@ void R2Image::
 TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
 
   const int KERNEL_SIZE = 4;
-  // const int KERNEL_MULTIPLIER = (npixels/150000) > 0 ? (npixels/150000) : 1;
   const int KERNEL_MULTIPLIER = 4;
   int cX, cY, minPoint;
   int c,p,k,l, i;
@@ -440,7 +439,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   //Allocate necessary memory:
   double** A = dmatrix(1,4,1,3);
   double** AMatch = dmatrix(1,4,1,3);
-  double* H;
+  double* H = new double[9];
   double** M = dmatrix(1,8,1,9);
   double** nullspaceMatrix = dmatrix(1,9,1,9);
   double* HBest = new double[9];
@@ -465,10 +464,6 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
       AMatch[j][2] = (double)(foundPoints[p[j-1]] / width);
       AMatch[j][3] = 1.0;
     }
-
-    
-
-
     //Find our H matrix
     H = constructHomographyMat(A, AMatch, M, nullspaceMatrix);
 
