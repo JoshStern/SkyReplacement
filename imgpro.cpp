@@ -29,6 +29,8 @@
 #include "R2Pixel.h"
 #include "R2Image.h"
 
+using namespace std;
+
 
 
 // Program arguments
@@ -152,29 +154,29 @@ main(int argc, char **argv)
   int image_count = atoi(*argv); argv++, argc--; 
   printf("Image count: %d\n", image_count);
 
-  std::vector<R2Image*> images;
+  vector<R2Image*>* images = new vector<R2Image*>();
   char* fname = new char[50];
 
 
   if(image_count == 1) { // if only one image is to be read, then use the file as a real name, not a base name
-    images.push_back(new R2Image());
+    (*images).push_back(new R2Image());
     // Read input image
-    if (!images.at(0)->Read(input_image_name)) {
+    if (!(*images).at(0)->Read(input_image_name)) {
       fprintf(stderr, "Unable to read image from %s\n", input_image_name);
       exit(-1);
     }
   }
   else if(image_count > 1) {
     for(int i = 0; i < image_count; i++) {
-      images.push_back(new R2Image());
-      if (!images.at(images.size()-1)) {
+      (*images).push_back(new R2Image());
+      if (!(*images).at((*images).size()-1)) {
         fprintf(stderr, "Unable to allocate image\n");
         exit(-1);
       }
       //Construct file names:
       sprintf(fname, "%s_%d.jpg", input_image_name, i);
 
-      if (!images.at(images.size()-1)->Read(fname)) {
+      if (!(*images).at((*images).size()-1)->Read(fname)) {
         fprintf(stderr, "Unable to read image from %s\n", fname);
         exit(-1);
       }
@@ -192,22 +194,22 @@ main(int argc, char **argv)
       double factor = atof(argv[1]);
       argv += 2, argc -=2;
       for(int i = 0; i < image_count; i++)
-        images[i]->Brighten(factor);
+        (*images)[i]->Brighten(factor);
     }
 	else if (!strcmp(*argv, "-sobelX")) {
       argv++, argc--;
       for(int i = 0; i < image_count; i++)
-        images[i]->SobelX();
+        (*images)[i]->SobelX();
     }
 	else if (!strcmp(*argv, "-sobelY")) {
       argv++, argc--;
       for(int i = 0; i < image_count; i++)
-        images[i]->SobelY();
+        (*images)[i]->SobelY();
     }
 	else if (!strcmp(*argv, "-log")) {
       argv++, argc--;
       for(int i = 0; i < image_count; i++)
-        images[i]->LoG();
+        (*images)[i]->LoG();
     }
     else if (!strcmp(*argv, "-saturation")) {
       CheckOption(*argv, argc, 2);
@@ -215,7 +217,7 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
 
       for(int i = 0; i < image_count; i++)
-        images[i]->ChangeSaturation(factor);
+        (*images)[i]->ChangeSaturation(factor);
     }
 	else if (!strcmp(*argv, "-harris")) {
       CheckOption(*argv, argc, 2);
@@ -223,20 +225,20 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
 
       for(int i = 0; i < image_count; i++)
-      images[i]->Harris(sigma);
+      (*images)[i]->Harris(sigma);
     }
     else if (!strcmp(*argv, "-blur")) {
       CheckOption(*argv, argc, 2);
       double sigma = atof(argv[1]);
       argv += 2, argc -= 2;
       for(int i = 0; i < image_count; i++)
-        images[i]->Blur(sigma);
+        (*images)[i]->Blur(sigma);
     }
     else if (!strcmp(*argv, "-sharpen")) {
       argv++, argc--;
 
       for(int i = 0; i < image_count; i++)
-        images[i]->Sharpen();
+        (*images)[i]->Sharpen();
     }
     else if (!strcmp(*argv, "-matchTranslation")) {
       CheckOption(*argv, argc, 2);
@@ -244,7 +246,7 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
 
       for(int i = 0; i < image_count; i++)
-        images[i]->blendOtherImageTranslated(other_image);
+        (*images)[i]->blendOtherImageTranslated(other_image);
       
       delete other_image;
     }
@@ -254,7 +256,7 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
 
       for(int i = 0; i < image_count; i++)
-        images[i]->blendOtherImageHomography(other_image);
+        (*images)[i]->blendOtherImageHomography(other_image);
 
       delete other_image;
     }
@@ -263,8 +265,7 @@ main(int argc, char **argv)
       R2Image *other_image = new R2Image(argv[1]);
       argv += 2, argc -= 2;
 
-      for(int i = 0; i < image_count; i++)
-        images[i]->SkyReplace(other_image);
+      other_image->SkyReplace(images);
 
       delete other_image;
 
@@ -278,7 +279,7 @@ main(int argc, char **argv)
 
   // Write output image
   if(image_count == 1) {
-    if (!images[0]->Write(output_image_name)) {
+    if (!(*images)[0]->Write(output_image_name)) {
       fprintf(stderr, "Unable to read image from %s\n", output_image_name);
       exit(-1);
     }
@@ -289,7 +290,7 @@ main(int argc, char **argv)
       //Construct name
       sprintf(fname, "%s_%d.jpg", output_image_name, i);
 
-      if (!images[i]->Write(fname)) {
+      if (!(*images)[i]->Write(fname)) {
         fprintf(stderr, "Unable to read image from %s\n", fname);
         exit(-1);
       }
@@ -299,7 +300,7 @@ main(int argc, char **argv)
 
   // Delete image
   for(int i = 0; i < image_count; i++) {
-    delete images[i];
+    delete (*images)[i];
 
   }
 

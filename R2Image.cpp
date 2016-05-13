@@ -11,6 +11,8 @@
 #include <thread>
 #include <iostream>
 
+using namespace std;
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -356,18 +358,28 @@ BinaryThreshold() {
 }
 
 void R2Image::
-SkyReplace(R2Image* skyImage) {
+SkyReplace(vector<R2Image*>* imageList) {
 
   R2Image* binaryImage = new R2Image(*this);
 
   binaryImage->BinaryThreshold();
 
-  for(int i=0; i<height; i++) {
+  vector<R2Image*> images = *imageList;
+  vector
+  for(int i = 0; i < images.size(); i++){
+    images.at(i)->Brighten(2);
+  }
+
+
+
+
+
+  /*for(int i=0; i<height; i++) {
     for(int j=0; j<width; j++) {
       if(binaryImage->Pixel(j,i) == R2Pixel(1,1,1,1))
         SetPixel(j,i, binaryImage->Pixel(j,i));
     }
-  }
+  }*/
 }
 
 void R2Image::

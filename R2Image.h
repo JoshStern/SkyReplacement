@@ -2,6 +2,8 @@
 #ifndef R2_IMAGE_INCLUDED
 #define R2_IMAGE_INCLUDED
 
+#include <vector>
+
 
 
 // Constant definitions
@@ -78,7 +80,7 @@ class R2Image {
   static void BlurYThread(R2Image* input, R2Image* output, double* kern, int size, int startCol, int endCol);
   void Harris(double sigma);
   void Sharpen(void);
-  void SkyReplace(R2Image* skyImage);
+  void SkyReplace(std::vector<R2Image*>* imageList);
 
   // further operations
   void blendOtherImageTranslated(R2Image * otherImage);
