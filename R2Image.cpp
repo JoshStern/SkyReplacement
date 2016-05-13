@@ -372,15 +372,19 @@ SkyReplace(vector<R2Image*>* imageList) {
   int* prevPointList = new int[50];
   int* currentPointList = new int[50];
   double x, y, z;
+  int skyOffputX = width/2;
+  int skyOffputY = height/2;
 
   images.at(0)->Feature(2, prevPointList, 50);
   H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
+
+  printf("H:\n %5.2f,%5.2f,%5.2f\n,%5.2f,%5.2f,%5.2f\n,%5.2f,%5.2f,%5.2f\n", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7],H[8]);
 
   binaryImage->BinaryThreshold();
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        images.at(0)->SetPixel(j,k, Pixel(j,k));
+        images.at(0)->SetPixel(j,k, Pixel(j+skyOffputX,k+skyOffputY));
       }
     }
   }
@@ -390,11 +394,9 @@ SkyReplace(vector<R2Image*>* imageList) {
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        x = j*H[0] + k*H[1] + 1*H[2];
-        y = j*H[3] + k*H[4] + 1*H[5];
-        z = j*H[6] + k*H[7] + 1*H[8];
-
-        x /= z; y /=z;
+        z = H[6]*(j+skyOffputX) + H[7]*(k+skyOffputY) + H[8]*1.0;
+        x = (H[0]*(j+skyOffputX) + H[1]*(k+skyOffputY) + H[2]*1.0) / z;
+        y = (H[3]*(j+skyOffputX) + H[4]*(k+skyOffputY) + H[5]*1.0) / z;
 
         images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
       }
@@ -454,8 +456,6 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
   }
 
   return HomogRANSAC(points, outPoints, 50);
-
-
 }
 
 double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
@@ -489,19 +489,19 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
       AMatch[j][3] = 1.0;
     }
     //Find our H matrix
-    H = constructHomographyMat(A, AMatch, M, nullspaceMatrix);
+    H = constructHomographyMat(AMatch, A, M, nullspaceMatrix);
 
     c = 0;
     //Check it against the others
     for(j = 0; j < NSELECTED; j++) {
-      pX = (double)(selectedPoints[j] % width);
-      pY = (double)(selectedPoints[j] / width);
+      pX = (double)(foundPoints[j] % width);
+      pY = (double)(foundPoints[j] / width);
       pCalcZ = H[6]*pX + H[7]*pY + H[8]*1.0;
       pCalcX = (H[0]*pX + H[1]*pY + H[2]*1.0) / pCalcZ;
       pCalcY = (H[3]*pX + H[4]*pY + H[5]*1.0) / pCalcZ;
       //Calculate distance between calculated points and true points
-      diffX = pCalcX - (double)(foundPoints[j] % width);
-      diffY = pCalcY - (double)(foundPoints[j] / width);
+      diffX = pCalcX - (double)(selectedPoints[j] % width);
+      diffY = pCalcY - (double)(selectedPoints[j] / width);
 
 
       //Check how close this distance is to the original, if close enough, count it as a supporter
@@ -875,7 +875,6 @@ Harris(double sigma)
     }
   }
 }
-
 
 void R2Image::
 Sharpen()
