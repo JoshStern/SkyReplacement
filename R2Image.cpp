@@ -326,12 +326,12 @@ BinaryThreshold() {
   }*/
 
   float blue_thresh = 0.0f;
-  // only works for blue skys... but...
+  // only works for blue skies... but...
 
   // search for blue thresh
-  for (int i = 0; i < width; i+=10) {
-    for (int j = 0;  j < height; j+=10) {
-      if(Pixel(i,j).Blue() > blue_thresh)
+  for (int i = 0; i < width; i+=50) {
+    for (int j = 0; j < height; j+=50) {
+      if (Pixel(i,j).Blue() > blue_thresh) // set to max
         blue_thresh = Pixel(i,j).Blue();
     }
   }
@@ -342,19 +342,56 @@ BinaryThreshold() {
 
   printf("THRESHOLD BLUE: %f\n", blue_thresh);
 
-  float th;
   float bl;
+  float llBl; // lower left
+  float lrBl; // lower right
+  float ulBl; // upper left
+  float urBl; // upper right
+
+  R2Pixel blRGB;
+  R2Pixel llBlRGB;
+  R2Pixel lrBlRGB;
+  R2Pixel ulBlRGB;
+  R2Pixel urBlRGB;
+
   R2Pixel white(1, 1, 1, 1);
   R2Pixel blk(0, 0, 0, 1);
+
+  // R2Image imgCopy(*this);
 
   for (int i = 0; i < width; i++) {
     for (int j = 0;  j < height; j++) {
       bl = (float) Pixel(i,j).Blue();
       //if(Pixel(i,j) > thresh)
-      if(bl > blue_thresh)
+      if (bl > blue_thresh) {
         SetPixel(i,j, white);
-      else
-        SetPixel(i,j, blk);
+      }
+      else {
+        // llBl = (float) Pixel(i-5,j-5).Blue();
+        // lrBl = (float) Pixel(i-5,j+5).Blue();
+        // ulBl = (float) Pixel(i+5,j-5).Blue();
+        // urBl = (float) Pixel(i+5,j+5).Blue();
+        blRGB = Pixel(i,j);
+        llBlRGB = Pixel(i-5,j-5);
+        lrBlRGB = Pixel(i-5,j+5);
+        ulBlRGB = Pixel(i+5,j-5);
+        urBlRGB = Pixel(i+5,j+5);
+        float redDiff = fabs(Pixel(i,j).Red() - Pixel(i-5,j-5).Red());
+        float greenDiff = fabs(Pixel(i,j).Green() - Pixel(i-5,j-5).Green());
+        // nextBl = (float) Pixel(i+10,j+10).Blue();
+        if ((fabs(blRGB.Blue() - llBlRGB.Blue()) < 1.0) &&
+            (fabs(blRGB.Blue() - lrBlRGB.Blue()) < 1.0) &&
+            (fabs(blRGB.Blue() - ulBlRGB.Blue()) < 1.0) &&
+            (fabs(blRGB.Blue() - urBlRGB.Blue()) < 1.0) &&
+            (redDiff < 0.2) && (greenDiff < 0.2)) {
+          // std::cout << bl << "\n";
+          // std::cout << prevBl << "\n";
+          SetPixel(i,j, white);
+        }
+        else {
+          SetPixel(i,j, blk);
+        }
+      }
     }
   }
 }
