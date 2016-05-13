@@ -385,20 +385,21 @@ SkyReplace(vector<R2Image*>* imageList) {
     }
   }
 
+  binaryImage = new R2Image(*images[1]);
+  binaryImage->BinaryThreshold();
+  for(int j=0; j<images.at(0)->width; j++) {
+    for(int k=0;k<images.at(0)->height;k++) {
+      if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
+        x = j*H[0] + k*H[1] + 1*H[2];
+        y = j*H[3] + k*H[4] + 1*H[5];
+        z = j*H[6] + k*H[7] + 1*H[8];
 
-  // for(int j=0; j<images.at(0)->width; j++) {
-  //   for(int k=0;k<images.at(0)->height;k++) {
-  //     if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-  //       x = j*H[0] + k*H[1] + 1*H[2];
-  //       y = j*H[3] + k*H[4] + 1*H[5];
-  //       z = j*H[6] + k*H[7] + 1*H[8];
+        x /= z; y /=z;
 
-  //       x /= z; y /=z;
-
-  //       images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
-  //     }
-  //   }
-  // }
+        images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
+      }
+    }
+  }
 
   delete [] H;
   delete binaryImage;
@@ -834,7 +835,6 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   
   delete red;
   delete [] pointMap;
-  delete [] selectedPoints;
 }
 
 
