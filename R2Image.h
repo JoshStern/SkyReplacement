@@ -45,6 +45,11 @@ class R2Image {
   R2Image(const R2Image& image);
   ~R2Image(void);
 
+  void Feature(double sigma, int* prevPointList, int nselected);
+  void SelectPoints(int* pm, int* out, int n);
+  void QuickSort(int* pm, int lo, int hi);
+  int Partition(int* pm, int lo, int hi);
+
   // Image properties
   int NPixels(void) const;
   int Width(void) const;
@@ -69,7 +74,7 @@ class R2Image {
   // show how SVD works
   void svdTest();
 
-  void constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix, double** H);
+  double* constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix);
 
   // Linear filtering operations
   void SobelX();
@@ -81,6 +86,8 @@ class R2Image {
   void Harris(double sigma);
   void Sharpen(void);
   void SkyReplace(std::vector<R2Image*>* imageList);
+  void TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints);
+  double* HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED);
 
   // further operations
   void blendOtherImageTranslated(R2Image * otherImage);

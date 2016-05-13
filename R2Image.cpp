@@ -246,9 +246,11 @@ svdTest(void)
 }
 
 
-void R2Image::constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix, double** H){
+double* R2Image::constructHomographyMat(double** A, double** AMatch, double** M, double** nullspaceMatrix){
   double sv[10];
   int i, j,k;
+
+  double* H = new double[9];
 
   //Compute odd rows:
   for(j=1; j<=8; j+=2) {
@@ -278,11 +280,12 @@ void R2Image::constructHomographyMat(double** A, double** AMatch, double** M, do
     if(sv[i] < sv[minsvIndex])
       minsvIndex = i;
   }
-  for(i=1; i<=3; i++) {
-    for(j=1; j<=3; j++) {
-      H[i][j] = nullspaceMatrix[3*(i-1) + j][minsvIndex];
-    }
+
+  for(i=0; i<9; i++) {
+    H[i] = nullspaceMatrix[i][minsvIndex];
   }
+  return H;
+
 }
 
 
@@ -362,42 +365,242 @@ SkyReplace(vector<R2Image*>* imageList) {
 
   R2Image* binaryImage = new R2Image(*this);
 
-  binaryImage->BinaryThreshold();
-
   vector<R2Image*> images = *imageList;
-  vector
+
+  int* prevPointList = new int[50];
+  int* currentPointList = new int[50];
+
+
   for(int i = 0; i < images.size(); i++){
-    images.at(i)->Brighten(2);
+    // If first image then do this stuff
+    if(i == 0){
+      images.at(0)->Feature(2, prevPointList, 50);
+      images.at(i)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
+    }
+    else {
+    }
+  }
+}
+
+void R2Image::
+TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
+
+  const int KERNEL_SIZE = 4;
+  // const int KERNEL_MULTIPLIER = (npixels/150000) > 0 ? (npixels/150000) : 1;
+  const int KERNEL_MULTIPLIER = 4;
+  int cX, cY, minPoint;
+  int c,p,k,l, i;
+  double ssd, minSSD;
+
+  R2Pixel diff;
+  //Go through, checking all 150 points and the surrounding area 
+  for(i = 0; i < size; i++) {
+
+    //Find current x and y
+    cX = points[i] % width;
+    cY = points[i] / width;
+
+    minSSD = 5000.0;
+    minPoint = 0;
+
+    // Check out a 20% section of the image, starting from center and moving out
+    for(c = -(height/10); c < (height/10); c++) {
+      for(p = -(width/10); p < (width/10); p++) {
+        // Calculate ssd over kernel
+        ssd = 0;
+        for(k = -KERNEL_SIZE*KERNEL_MULTIPLIER; k < KERNEL_SIZE*KERNEL_MULTIPLIER; k += KERNEL_MULTIPLIER) {
+          for(l = -KERNEL_SIZE*KERNEL_MULTIPLIER; l < KERNEL_SIZE*KERNEL_MULTIPLIER; l += KERNEL_MULTIPLIER) {
+            if(cY + k < 0 || cY + k > height-1 || cY + c + k < 0 || cY + c + k > height-1
+              || cX + l < 0 || cX + l > width-1 || cX + p + l < 0 || cX + p + l > width-1) {
+              ssd += 1.0;
+            }
+            else {
+              diff = Pixel(cX + l, cY + k) - otherImage->Pixel(cX + p + l, cY + c + k);
+              ssd +=  diff.Red()*diff.Red() + diff.Green()*diff.Green() + diff.Blue()*diff.Blue();
+            }
+          }
+        }
+        if(ssd < minSSD) {
+          minSSD = ssd;
+          minPoint = (cX + p) + (cY + c)*width;
+        }
+      }
+    }
+    outPoints[i] = minPoint;
   }
 
+  double* H = HomogRANSAC(points, outPoints, 50);
 
+  printf("%5.2f %5.2f %5.2f \n %5.2f %5.2f %5.2f \n %5.2f %5.2f %5.2f\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]);
 
+}
 
+double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
+  const int TRIAL_NUMBER = 200;
+  //Allocate necessary memory:
+  double** A = dmatrix(1,4,1,3);
+  double** AMatch = dmatrix(1,4,1,3);
+  double* H;
+  double** M = dmatrix(1,8,1,9);
+  double** nullspaceMatrix = dmatrix(1,9,1,9);
+  double* HBest = new double[9];
 
-  /*for(int i=0; i<height; i++) {
-    for(int j=0; j<width; j++) {
-      if(binaryImage->Pixel(j,i) == R2Pixel(1,1,1,1))
-        SetPixel(j,i, binaryImage->Pixel(j,i));
+  int j, i, k, c = 0, maxC = -1;
+  int p[4];
+  double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
+  double pX, pY, diffX, diffY;
+
+  // Loop 50 times
+  for(i = 0; i < TRIAL_NUMBER; i++) {
+    //Select 4 random valid index
+    for(j = 0; j < 4; j++)
+      p[j] = rand() % NSELECTED;
+
+    //Fill our A and AMatch matrices
+    for(j = 1; j <= 4; j++){
+      A[j][1] = (double)(selectedPoints[p[j-1]] % width);
+      A[j][2] = (double)(selectedPoints[p[j-1]] / width);
+      A[j][3] = 1.0;
+      AMatch[j][1] = (double)(foundPoints[p[j-1]] % width);
+      AMatch[j][2] = (double)(foundPoints[p[j-1]] / width);
+      AMatch[j][3] = 1.0;
     }
-  }*/
+
+    
+
+
+    //Find our H matrix
+    H = constructHomographyMat(A, AMatch, M, nullspaceMatrix);
+
+    c = 0;
+    //Check it against the others
+    for(j = 0; j < NSELECTED; j++) {
+      pX = (double)(selectedPoints[j] % width);
+      pY = (double)(selectedPoints[j] / width);
+      pCalcZ = H[6]*pX + H[7]*pY + H[8]*1.0;
+      pCalcX = (H[0]*pX + H[1]*pY + H[2]*1.0) / pCalcZ;
+      pCalcY = (H[3]*pX + H[4]*pY + H[5]*1.0) / pCalcZ;
+      //Calculate distance between calculated points and true points
+      diffX = pCalcX - (double)(foundPoints[j] % width);
+      diffY = pCalcY - (double)(foundPoints[j] / width);
+
+
+      //Check how close this distance is to the original, if close enough, count it as a supporter
+      if(diffX*diffX + diffY*diffY < 9.0)
+        c++;
+    }
+    // Find biggest inlier
+    if(c > maxC){
+      maxC = c;
+      for(j=0; j<9; j++) {
+        HBest[j] = H[j];
+      }
+    }
+  }
+
+  //Run back through, eliminating points that are too far off
+  for(j = 0; j < NSELECTED; j++) {
+    pX = (double)(selectedPoints[j] % width);
+    pY = (double)(selectedPoints[j] / width);
+    pCalcZ = HBest[6]*pX + HBest[7]*pY + HBest[8]*1.0;
+    pCalcX = (HBest[0]*pX + HBest[1]*pY + HBest[2]*1.0) / pCalcZ;
+    pCalcY = (HBest[3]*pX + HBest[4]*pY + HBest[4]*1.0) / pCalcZ;
+    diffX = pCalcX - (double)(foundPoints[j] % width);
+    diffY = pCalcY - (double)(foundPoints[j] / width);
+    // Set them to -1 if they are too far off
+    if(diffX*diffX + diffY*diffY > 9.0) {
+      selectedPoints[j] = -1;
+      foundPoints[j] = -1;
+    }
+  }
+
+  return HBest;
+
 }
 
 void R2Image::
 SobelX(void)
 {
-	// Apply the Sobel oprator to the image in X direction
+	int i,j;
+
+  double kern[3][3] = {{1.0,0.0,-1.0},
+                       {2.0,0.0,-2.0},
+                       {1.0,0.0,-1.0}};
+
+  R2Image* finalImage = new R2Image(width, height);
+
+  // Set borders of final image
+  for(i = 0; i < width; i++)
+    finalImage->SetPixel(i,0, Pixel(i,0));
+  for(i = 1; i < height; i++)
+    finalImage->SetPixel(0,i, Pixel(0,i));
+
+  // Loop through every pixel except the border ones applying convolution operation
+  for(int i = 1; i < height-1; i++){
+    for(int j = 1; j < width-1; j++){
+      finalImage->SetPixel(j, i, 
+                          Pixel(j-1, i-1) * kern[0][0] +
+                          Pixel(j, i-1) * kern[0][1] +
+                          Pixel(j+1, i-1) * kern[0][2] + 
+                          Pixel(j-1, i) * kern[1][0] +
+                          Pixel(j, i) * kern[1][1] +
+                          Pixel(j+1, i) * kern[1][2] +
+                          Pixel(j-1, i+1) * kern[2][0] +
+                          Pixel(j, i+1) * kern[2][1] +
+                          Pixel(j+1, i+1) * kern[2][2]
+        );               
+    }
+  }
   
-  // FILL IN IMPLEMENTATION HERE (REMOVE PRINT STATEMENT WHEN DONE)
-  fprintf(stderr, "SobelX() not implemented\n");
+  for(i = 1; i < height-1; i++){
+    for(j = 1; j < width-1; j++){
+      SetPixel(j,i, finalImage->Pixel(j,i));
+    }
+  }
+
+  delete finalImage;
 }
 
 void R2Image::
 SobelY(void)
 {
-	// Apply the Sobel oprator to the image in Y direction
+  int i,j;
+
+  double kern[3][3] = {{1.0,2.0,1.0},
+                       {0.0,0.0,0.0},
+                       {-1.0,-2.0,-1.0}};
+
+  R2Image* finalImage = new R2Image(width, height);
+
+  // Set borders of final image
+  for(i = 0; i < width; i++)
+    finalImage->SetPixel(i,0, Pixel(i,0));
+  for(i = 1; i < height; i++)
+    finalImage->SetPixel(0,i, Pixel(0,i));
+
+  // Loop through every pixel except the border ones applying convolution operation
+  for(int i = 1; i < height-1; i++){
+    for(int j = 1; j < width-1; j++){
+      finalImage->SetPixel(j, i, 
+                          Pixel(j-1, i-1) * kern[0][0] +
+                          Pixel(j, i-1) * kern[0][1] +
+                          Pixel(j+1, i-1) * kern[0][2] + 
+                          Pixel(j-1, i) * kern[1][0] +
+                          Pixel(j, i) * kern[1][1] +
+                          Pixel(j+1, i) * kern[1][2] +
+                          Pixel(j-1, i+1) * kern[2][0] +
+                          Pixel(j, i+1) * kern[2][1] +
+                          Pixel(j+1, i+1) * kern[2][2]
+        );             
+    }
+  }
   
-  // FILL IN IMPLEMENTATION HERE (REMOVE PRINT STATEMENT WHEN DONE)
-  fprintf(stderr, "SobelY() not implemented\n");
+  for(i = 1; i < height-1; i++){
+    for(j = 1; j < width-1; j++){
+      SetPixel(j,i, finalImage->Pixel(j,i));
+    }
+  }
+  delete finalImage;
 }
 
 void R2Image::
@@ -518,6 +721,102 @@ Blur(double sigma)
 
   delete [] kern;
   delete tempImage;
+}
+
+
+int R2Image::
+Partition(int* pm, int lo, int hi) 
+{
+  int i = lo-1;
+  int j = hi+1;
+  int temp = 0;
+
+  R2Pixel& p = Pixel(pm[lo] % width, pm[lo] / width);
+
+  while(1) {
+    do
+    {
+      i++;
+    }while(Pixel((pm[i]) % width, (pm[i]) / width) > p);
+    do
+    {
+      j--;
+    }while(Pixel((pm[j]) % width, (pm[j]) / width) < p);
+    if(i >= j)
+      return j;
+
+    temp = pm[i];
+    pm[i] = pm[j];
+    pm[j] = temp;
+
+  }
+}
+
+void R2Image::
+QuickSort(int* pm, int lo, int hi) 
+{
+  if(lo < hi) {
+    int p = Partition(pm, lo, hi);
+    QuickSort(pm, lo, p);
+    QuickSort(pm, p+1, hi);
+  }
+
+}
+
+void R2Image::
+SelectPoints(int* pm, int* out, int n) {
+  int c, p, cX, cY, pmCursor = 0, pointCount = 0;
+  R2Pixel black(0.0,0.0,0.0,1.0);
+
+  //Select the 150 points
+  while(pointCount < n && pmCursor < npixels) {
+    //Select next best pixel value out of our array
+    cX = pm[pmCursor] % width;
+    cY = pm[pmCursor] / width;
+    //Make sure pixel is not black
+    if(Pixel(cX, cY) > black) {
+      // Set value
+      out[pointCount] = cX + cY*width;
+      // Black out pixels in harris
+      for(c = -20; c < 20; c++) {
+        for(p = -20; p < 20; p++) {
+          if(cX+p >= 0 && cY+c >= 0 && cX+p < width && cY+c < height){
+            SetPixel(cX+p, cY+c, black);
+          }
+        }
+      }
+      pointCount++;
+    }
+    pmCursor++;
+  }
+}
+
+void R2Image::
+Feature(double sigma, int* selectedPoints, int NSELECTED)
+{
+  int i, c, p;
+
+  int* pointMap = new int[npixels];
+
+  R2Pixel* red = new R2Pixel(1.0,0.0,0.0,1.0);
+  R2Image HarrisImage(*this);
+  //Allocate space for a coordinate map
+  
+  for(i = 0; i < npixels; i++) {
+    pointMap[i] = i;
+  }
+
+  HarrisImage.Harris(sigma);
+
+  HarrisImage.QuickSort(pointMap, 1, npixels-2);
+  int x = pointMap[0] % width;
+  int y = pointMap[0] / width;
+
+  HarrisImage.SelectPoints(pointMap, selectedPoints, NSELECTED);
+  
+  delete red;
+  delete [] pointMap;
+  delete [] selectedPoints;
 }
 
 
