@@ -361,22 +361,22 @@ BinaryThreshold() {
 void R2Image::
 SkyReplace(vector<R2Image*>* imageList) {
 
-
+  const int NSELECTED = 100;
   vector<R2Image*> images = *imageList;
 
   R2Image* binaryImage = new R2Image(*images[0]);
 
   double* H = new double[9];
 
-  int* prevPointList = new int[50];
-  int* currentPointList = new int[50];
+  int* prevPointList = new int[NSELECTED];
+  int* currentPointList = new int[NSELECTED];
   double x, y, z;
   int skyOffputX = width/4;
   int skyOffputY = height/4;
   double skyScale = 0.5;
 
-  images.at(0)->Feature(2, prevPointList, 50);
-  H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
+  images.at(0)->Feature(2, prevPointList, NSELECTED);
+  H = images.at(0)->TrackPoints(prevPointList, NSELECTED, images.at(1), currentPointList);
 
   printf("H:\n %5.2f,%5.2f,%5.2f\n,%5.2f,%5.2f,%5.2f\n,%5.2f,%5.2f,%5.2f\n", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7],H[8]);
 
@@ -398,7 +398,8 @@ SkyReplace(vector<R2Image*>* imageList) {
         x = (H[0]*((j+skyOffputX)*skyScale) + H[1]*((k+skyOffputY)*skyScale) + H[2]*1.0) / z;
         y = (H[3]*((j+skyOffputX)*skyScale) + H[4]*((k+skyOffputY)*skyScale) + H[5]*1.0) / z;
 
-        images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
+        if(x > 0 && x < width && y > 0 && y < height)
+          images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
       }
     }
   }
@@ -455,7 +456,7 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
     outPoints[i] = minPoint;
   }
 
-  return HomogRANSAC(points, outPoints, 50);
+  return HomogRANSAC(points, outPoints, size);
 }
 
 double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
@@ -517,21 +518,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
     }
   }
 
-  //Run back through, eliminating points that are too far off
-  for(j = 0; j < NSELECTED; j++) {
-    pX = (double)(selectedPoints[j] % width);
-    pY = (double)(selectedPoints[j] / width);
-    pCalcZ = HBest[6]*pX + HBest[7]*pY + HBest[8]*1.0;
-    pCalcX = (HBest[0]*pX + HBest[1]*pY + HBest[2]*1.0) / pCalcZ;
-    pCalcY = (HBest[3]*pX + HBest[4]*pY + HBest[4]*1.0) / pCalcZ;
-    diffX = pCalcX - (double)(foundPoints[j] % width);
-    diffY = pCalcY - (double)(foundPoints[j] / width);
-    // Set them to -1 if they are too far off
-    if(diffX*diffX + diffY*diffY > 9.0) {
-      selectedPoints[j] = -1;
-      foundPoints[j] = -1;
-    }
-  }
+  printf("maxC: %d\n", maxC);
 
   return HBest;
 
