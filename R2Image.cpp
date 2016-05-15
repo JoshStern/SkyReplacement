@@ -342,7 +342,6 @@ BinaryThreshold() {
 
   printf("THRESHOLD BLUE: %f\n", blue_thresh); 
 
-  float th;
   float bl;
   R2Pixel white(1, 1, 1, 1); 
   R2Pixel blk(0, 0, 0, 1); 
@@ -372,8 +371,9 @@ SkyReplace(vector<R2Image*>* imageList) {
   int* prevPointList = new int[50];
   int* currentPointList = new int[50];
   double x, y, z;
-  int skyOffputX = width/2;
-  int skyOffputY = height/2;
+  int skyOffputX = width/4;
+  int skyOffputY = height/4;
+  double skyScale = 0.5;
 
   images.at(0)->Feature(2, prevPointList, 50);
   H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
@@ -384,7 +384,7 @@ SkyReplace(vector<R2Image*>* imageList) {
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        images.at(0)->SetPixel(j,k, Pixel(j+skyOffputX,k+skyOffputY));
+        images.at(0)->SetPixel(j,k, Pixel((j+skyOffputX)*skyScale,(k+skyOffputY)*skyScale));
       }
     }
   }
@@ -394,9 +394,9 @@ SkyReplace(vector<R2Image*>* imageList) {
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        z = H[6]*(j+skyOffputX) + H[7]*(k+skyOffputY) + H[8]*1.0;
-        x = (H[0]*(j+skyOffputX) + H[1]*(k+skyOffputY) + H[2]*1.0) / z;
-        y = (H[3]*(j+skyOffputX) + H[4]*(k+skyOffputY) + H[5]*1.0) / z;
+        z = H[6]*((j+skyOffputX)*skyScale) + H[7]*((k+skyOffputY)*skyScale) + H[8]*1.0;
+        x = (H[0]*((j+skyOffputX)*skyScale) + H[1]*((k+skyOffputY)*skyScale) + H[2]*1.0) / z;
+        y = (H[3]*((j+skyOffputX)*skyScale) + H[4]*((k+skyOffputY)*skyScale) + H[5]*1.0) / z;
 
         images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
       }
@@ -468,7 +468,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   double** nullspaceMatrix = dmatrix(1,9,1,9);
   double* HBest = new double[9];
 
-  int j, i, k, c = 0, maxC = -1;
+  int j, i, c = 0, maxC = -1;
   int p[4];
   double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
   double pX, pY, diffX, diffY;
@@ -700,7 +700,7 @@ Blur(double sigma)
 
 
     //Counter variables
-  int i, j, k;
+  int i;
   // Temporary image
   R2Image* tempImage = new R2Image(width, height);
   // Temporary pixel
@@ -813,7 +813,7 @@ SelectPoints(int* pm, int* out, int n) {
 void R2Image::
 Feature(double sigma, int* selectedPoints, int NSELECTED)
 {
-  int i, c, p;
+  int i;
 
   int* pointMap = new int[npixels];
 
@@ -828,8 +828,6 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   HarrisImage.Harris(sigma);
 
   HarrisImage.QuickSort(pointMap, 1, npixels-2);
-  int x = pointMap[0] % width;
-  int y = pointMap[0] / width;
 
   HarrisImage.SelectPoints(pointMap, selectedPoints, NSELECTED);
   
