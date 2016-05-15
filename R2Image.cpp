@@ -357,6 +357,8 @@ BinaryThreshold() {
         SetPixel(i,j, blk);
     }
   }
+
+  printf("end of binary thresh\n");
 }
 
 void R2Image::
@@ -365,27 +367,140 @@ SkyReplace(vector<R2Image*>* imageList) {
 
   vector<R2Image*> images = *imageList;
 
-  R2Image* binaryImage = new R2Image(*images[0]);
+  //R2Image* binaryImage = new R2Image(*images[0]);
 
-  double* H = new double[9];
+  double* currH = new double[9];
+  double* nextH = new double[9];
 
   int* prevPointList = new int[50];
   int* currentPointList = new int[50];
   double x, y, z;
+  R2Image* binaryImage;
+  int feature_i = 0; 
 
-  images.at(0)->Feature(2, prevPointList, 50);
-  H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);
 
-  binaryImage->BinaryThreshold();
+  for(int i = 0; i < images.size(); i++)
+  {
+    // first image
+    if(i == 0)
+    {
+      printf("IF I: %d\n", i);
+      binaryImage = new R2Image(*images[0]);
+      images.at(i)->Feature(2, prevPointList, 50);
+      currH = images.at(i)->TrackPoints(prevPointList, 50, images.at(i+1), currentPointList);
+      for(int j = 0; j < 9; j++)
+      {
+          printf("currh[%d] = %f\n", j, currH[j]);
+      }
+      binaryImage->BinaryThreshold();
+      
+      // set texture for first image immediately
+      for(int j=0; j<images.at(i)->width; j++) 
+      {
+        for(int k=0;k<images.at(i)->height;k++) 
+        {
+          if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
+          {
+            images.at(i)->SetPixel(j,k, Pixel(j,k));
+          }
+        }
+      }
+    }
+    // AFTER FIRST ELEMENT, BEFORE LAST ELEMENT 
+    else if(i < images.size() - 1)
+    {
+      printf("ELIF I: %d\n", i);
+      
+      if(i != 1)
+      {
+        for(int j = 0; j < 9; j++)
+        {
+          currH[j] = nextH[j];
+          printf("currh[%d] = %f\n", j, currH[j]);
+        }
+      }
+
+      
+      if(feature_i%2 != 1)
+      {
+        for(int j = 0; j < 50; j++)
+        {
+          prevPointList[j] = currentPointList[j]; 
+        } 
+      }
+      else
+      {
+        printf("Making new features.\n");
+        images.at(i)->Feature(2, prevPointList, 50);
+      }
+      nextH = images.at(i)->TrackPoints(prevPointList, 50, images.at(i+1), currentPointList); 
+      binaryImage = new R2Image(*images[i]);
+      binaryImage->BinaryThreshold();
+      
+
+      // APPLY H MATRIX
+      for(int j=0; j<images.at(i-1)->width; j++) 
+      {
+        for(int k=0;k<images.at(i-1)->height;k++) 
+        {
+          if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
+          {
+            x = j*currH[0] + k*currH[1] + 1*currH[2];
+            y = j*currH[3] + k*currH[4] + 1*currH[5];
+            z = j*currH[6] + k*currH[7] + 1*currH[8];
+
+            x /= z; y /=z;
+
+            if(x > 0 && x < images.at(i)->width && y > 0 && y < images.at(i)->height){
+              images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      printf("ONCE: I: %d\n", i);
+      for(int j = 0; j < 9; j++)
+      {
+          currH[j] = nextH[j];
+          printf("currh[%d] = %f\n", j, currH[j]);
+      }
+      for(int j=0; j<images.at(i-1)->width; j++) 
+      {
+        for(int k=0;k<images.at(i-1)->height;k++) 
+        {
+          if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
+          {
+            x = j*currH[0] + k*currH[1] + 1*currH[2];
+            y = j*currH[3] + k*currH[4] + 1*currH[5];
+            z = j*currH[6] + k*currH[7] + 1*currH[8];
+
+            x /= z; y /=z;
+
+            if(x > 0 && x < images.at(i)->width && y > 0 && y < images.at(i)->height){
+              images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
+            }
+          }
+        }
+      }
+    }
+
+    feature_i++;
+  }
+  /*images.at(0)->Feature(2, prevPointList, 50);
+  H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);*/
+
+  /*binaryImage->BinaryThreshold();
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
         images.at(0)->SetPixel(j,k, Pixel(j,k));
       }
     }
-  }
+  }*/
 
-  binaryImage = new R2Image(*images[1]);
+ /* binaryImage = new R2Image(*images[1]);
   binaryImage->BinaryThreshold();
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
@@ -399,9 +514,10 @@ SkyReplace(vector<R2Image*>* imageList) {
         images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
       }
     }
-  }
+  }*/
 
-  delete [] H;
+  delete [] currH;
+  delete [] nextH;
   delete binaryImage;
   delete [] prevPointList;
   delete [] currentPointList;
