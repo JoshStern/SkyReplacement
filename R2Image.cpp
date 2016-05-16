@@ -342,7 +342,6 @@ BinaryThreshold() {
 
   printf("THRESHOLD BLUE: %f\n", blue_thresh); 
 
-  float th;
   float bl;
   R2Pixel white(1, 1, 1, 1); 
   R2Pixel blk(0, 0, 0, 1); 
@@ -364,7 +363,7 @@ BinaryThreshold() {
 void R2Image::
 SkyReplace(vector<R2Image*>* imageList) {
 
-
+  const int NSELECTED = 100;
   vector<R2Image*> images = *imageList;
 
   //R2Image* binaryImage = new R2Image(*images[0]);
@@ -372,12 +371,12 @@ SkyReplace(vector<R2Image*>* imageList) {
   double* currH = new double[9];
   double* nextH = new double[9];
 
-  int* prevPointList = new int[50];
-  int* currentPointList = new int[50];
+  int* prevPointList = new int[NSELECTED];
+  int* currentPointList = new int[NSELECTED];
   double x, y, z;
+
   R2Image* binaryImage;
   int feature_i = 0; 
-
 
   for(int i = 0; i < images.size(); i++)
   {
@@ -495,7 +494,7 @@ SkyReplace(vector<R2Image*>* imageList) {
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        images.at(0)->SetPixel(j,k, Pixel(j,k));
+        images.at(0)->SetPixel(j,k, Pixel((j+skyOffputX)*skyScale,(k+skyOffputY)*skyScale));
       }
     }
   }*/
@@ -505,13 +504,12 @@ SkyReplace(vector<R2Image*>* imageList) {
   for(int j=0; j<images.at(0)->width; j++) {
     for(int k=0;k<images.at(0)->height;k++) {
       if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        x = j*H[0] + k*H[1] + 1*H[2];
-        y = j*H[3] + k*H[4] + 1*H[5];
-        z = j*H[6] + k*H[7] + 1*H[8];
+        z = H[6]*((j+skyOffputX)*skyScale) + H[7]*((k+skyOffputY)*skyScale) + H[8]*1.0;
+        x = (H[0]*((j+skyOffputX)*skyScale) + H[1]*((k+skyOffputY)*skyScale) + H[2]*1.0) / z;
+        y = (H[3]*((j+skyOffputX)*skyScale) + H[4]*((k+skyOffputY)*skyScale) + H[5]*1.0) / z;
 
-        x /= z; y /=z;
-
-        images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
+        if(x > 0 && x < width && y > 0 && y < height)
+          images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
       }
     }
   }*/
@@ -569,9 +567,7 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
     outPoints[i] = minPoint;
   }
 
-  return HomogRANSAC(points, outPoints, 50);
-
-
+  return HomogRANSAC(points, outPoints, size);
 }
 
 double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTED) {
@@ -584,7 +580,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   double** nullspaceMatrix = dmatrix(1,9,1,9);
   double* HBest = new double[9];
 
-  int j, i, k, c = 0, maxC = -1;
+  int j, i, c = 0, maxC = -1;
   int p[4];
   double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
   double pX, pY, diffX, diffY;
@@ -605,19 +601,19 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
       AMatch[j][3] = 1.0;
     }
     //Find our H matrix
-    H = constructHomographyMat(A, AMatch, M, nullspaceMatrix);
+    H = constructHomographyMat(AMatch, A, M, nullspaceMatrix);
 
     c = 0;
     //Check it against the others
     for(j = 0; j < NSELECTED; j++) {
-      pX = (double)(selectedPoints[j] % width);
-      pY = (double)(selectedPoints[j] / width);
+      pX = (double)(foundPoints[j] % width);
+      pY = (double)(foundPoints[j] / width);
       pCalcZ = H[6]*pX + H[7]*pY + H[8]*1.0;
       pCalcX = (H[0]*pX + H[1]*pY + H[2]*1.0) / pCalcZ;
       pCalcY = (H[3]*pX + H[4]*pY + H[5]*1.0) / pCalcZ;
       //Calculate distance between calculated points and true points
-      diffX = pCalcX - (double)(foundPoints[j] % width);
-      diffY = pCalcY - (double)(foundPoints[j] / width);
+      diffX = pCalcX - (double)(selectedPoints[j] % width);
+      diffY = pCalcY - (double)(selectedPoints[j] / width);
 
 
       //Check how close this distance is to the original, if close enough, count it as a supporter
@@ -633,21 +629,7 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
     }
   }
 
-  //Run back through, eliminating points that are too far off
-  for(j = 0; j < NSELECTED; j++) {
-    pX = (double)(selectedPoints[j] % width);
-    pY = (double)(selectedPoints[j] / width);
-    pCalcZ = HBest[6]*pX + HBest[7]*pY + HBest[8]*1.0;
-    pCalcX = (HBest[0]*pX + HBest[1]*pY + HBest[2]*1.0) / pCalcZ;
-    pCalcY = (HBest[3]*pX + HBest[4]*pY + HBest[4]*1.0) / pCalcZ;
-    diffX = pCalcX - (double)(foundPoints[j] % width);
-    diffY = pCalcY - (double)(foundPoints[j] / width);
-    // Set them to -1 if they are too far off
-    if(diffX*diffX + diffY*diffY > 9.0) {
-      selectedPoints[j] = -1;
-      foundPoints[j] = -1;
-    }
-  }
+  printf("maxC: %d\n", maxC);
 
   return HBest;
 
@@ -816,7 +798,7 @@ Blur(double sigma)
 
 
     //Counter variables
-  int i, j, k;
+  int i;
   // Temporary image
   R2Image* tempImage = new R2Image(width, height);
   // Temporary pixel
@@ -929,7 +911,7 @@ SelectPoints(int* pm, int* out, int n) {
 void R2Image::
 Feature(double sigma, int* selectedPoints, int NSELECTED)
 {
-  int i, c, p;
+  int i;
 
   int* pointMap = new int[npixels];
 
@@ -944,8 +926,6 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   HarrisImage.Harris(sigma);
 
   HarrisImage.QuickSort(pointMap, 1, npixels-2);
-  int x = pointMap[0] % width;
-  int y = pointMap[0] / width;
 
   HarrisImage.SelectPoints(pointMap, selectedPoints, NSELECTED);
   
@@ -991,7 +971,6 @@ Harris(double sigma)
     }
   }
 }
-
 
 void R2Image::
 Sharpen()
