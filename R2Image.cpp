@@ -363,13 +363,15 @@ BinaryThreshold() {
 void R2Image::
 SkyReplace(vector<R2Image*>* imageList) {
 
-  const int NSELECTED = 100;
+  const int NSELECTED = 30;
   vector<R2Image*> images = *imageList;
+  R2Pixel red(1,0,0,1);
 
   //R2Image* binaryImage = new R2Image(*images[0]);
 
   double* currH = new double[9];
   double* nextH = new double[9];
+  double* tempH = new double[9];
   currH[0]=1; currH[1]=0; currH[2]=0; 
   currH[3]=0; currH[4]=1; currH[5]=0; 
   currH[6]=0; currH[7]=0; currH[8]=1; 
@@ -389,7 +391,18 @@ SkyReplace(vector<R2Image*>* imageList) {
       printf("IF I: %d\n", i);
       binaryImage = new R2Image(*images[0]);
       images.at(i)->Feature(2, prevPointList, NSELECTED);
-      currH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
+
+      for(int p = 0; p < NSELECTED; p++) {
+        for(int m = -3; m < 3; m++) {
+          for(int n = -3; n < 3; n++) {
+            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
+          } 
+        }
+      }
+
+      nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
+
+
       for(int j = 0; j < 9; j++)
       {
           printf("currh[%d] = %f\n", j, currH[j]);
@@ -412,32 +425,51 @@ SkyReplace(vector<R2Image*>* imageList) {
     else if(i < images.size() - 1)
     {
       printf("ELIF I: %d\n", i);
+
       
-      if(i != 1)
+      for(int j = 0; j < 9; j++)
       {
-        for(int j = 0; j < 9; j++)
-        {
-          currH[j] = nextH[j];
-          printf("currh[%d] = %f\n", j, currH[j]);
-        }
+        tempH[j] = currH[j];
       }
-      
-      if(feature_i%2 == 1)
+
+      //Multiply next with current
+      currH[0] = tempH[0]*nextH[0] + tempH[1]*nextH[3] + tempH[2]*nextH[6];
+      currH[1] = tempH[0]*nextH[1] + tempH[1]*nextH[4] + tempH[2]*nextH[7];
+      currH[2] = tempH[0]*nextH[2] + tempH[1]*nextH[5] + tempH[2]*nextH[8];
+      currH[3] = tempH[3]*nextH[0] + tempH[4]*nextH[3] + tempH[5]*nextH[6];
+      currH[4] = tempH[3]*nextH[1] + tempH[4]*nextH[4] + tempH[5]*nextH[7];
+      currH[5] = tempH[3]*nextH[2] + tempH[4]*nextH[5] + tempH[5]*nextH[8];
+      currH[6] = tempH[6]*nextH[0] + tempH[7]*nextH[3] + tempH[8]*nextH[6];
+      currH[7] = tempH[6]*nextH[1] + tempH[7]*nextH[4] + tempH[8]*nextH[7];
+      currH[8] = tempH[6]*nextH[2] + tempH[7]*nextH[5] + tempH[8]*nextH[8];
+
+
+
+      if(feature_i%10 == 9)
+      {
+        printf("Making new features.\n");
+        images.at(i)->Feature(2, prevPointList, NSELECTED);
+      }
+      else
       {
         for(int j = 0; j < NSELECTED; j++)
         {
           prevPointList[j] = currentPointList[j]; 
         } 
-      }
-      else
-      {
-        printf("Making new features.\n");
-        images.at(i)->Feature(2, prevPointList, NSELECTED);
+        
       }
 
       nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList); 
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
+
+      for(int p = 0; p < NSELECTED; p++) {
+        for(int m = -3; m < 3; m++) {
+          for(int n = -3; n < 3; n++) {
+            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
+          } 
+        }
+      }
       
 
       // APPLY H MATRIX
@@ -465,9 +497,19 @@ SkyReplace(vector<R2Image*>* imageList) {
       printf("ONCE: I: %d\n", i);
       for(int j = 0; j < 9; j++)
       {
-          currH[j] = nextH[j];
-          printf("currh[%d] = %f\n", j, currH[j]);
+        tempH[j] = currH[j];
       }
+
+      //Multiply next with current
+      currH[0] = tempH[0]*nextH[0] + tempH[1]*nextH[3] + tempH[2]*nextH[6];
+      currH[1] = tempH[0]*nextH[1] + tempH[1]*nextH[4] + tempH[2]*nextH[7];
+      currH[2] = tempH[0]*nextH[2] + tempH[1]*nextH[5] + tempH[2]*nextH[8];
+      currH[3] = tempH[3]*nextH[0] + tempH[4]*nextH[3] + tempH[5]*nextH[6];
+      currH[4] = tempH[3]*nextH[1] + tempH[4]*nextH[4] + tempH[5]*nextH[7];
+      currH[5] = tempH[3]*nextH[2] + tempH[4]*nextH[5] + tempH[5]*nextH[8];
+      currH[6] = tempH[6]*nextH[0] + tempH[7]*nextH[3] + tempH[8]*nextH[6];
+      currH[7] = tempH[6]*nextH[1] + tempH[7]*nextH[4] + tempH[8]*nextH[7];
+      currH[8] = tempH[6]*nextH[2] + tempH[7]*nextH[5] + tempH[8]*nextH[8];
 
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
@@ -506,7 +548,7 @@ double* R2Image::
 TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
 
   const int KERNEL_SIZE = 4;
-  const int KERNEL_MULTIPLIER = 4;
+  const int KERNEL_MULTIPLIER = 2;
   int cX, cY, minPoint;
   int c,p,k,l, i;
   double ssd, minSSD;
@@ -523,8 +565,8 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
     minPoint = 0;
 
     // Check out a 20% section of the image, starting from center and moving out
-    for(c = -(height/10); c < (height/10); c++) {
-      for(p = -(width/10); p < (width/10); p++) {
+    for(c = -(height/30); c < (height/30); c++) {
+      for(p = -(width/30); p < (width/30); p++) {
         // Calculate ssd over kernel
         ssd = 0;
         for(k = -KERNEL_SIZE*KERNEL_MULTIPLIER; k < KERNEL_SIZE*KERNEL_MULTIPLIER; k += KERNEL_MULTIPLIER) {
