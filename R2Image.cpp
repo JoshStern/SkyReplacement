@@ -370,6 +370,9 @@ SkyReplace(vector<R2Image*>* imageList) {
 
   double* currH = new double[9];
   double* nextH = new double[9];
+  currH[0]=1; currH[1]=0; currH[2]=0; 
+  currH[3]=0; currH[4]=1; currH[5]=0; 
+  currH[6]=0; currH[7]=0; currH[8]=1; 
 
   int* prevPointList = new int[NSELECTED];
   int* currentPointList = new int[NSELECTED];
@@ -385,8 +388,8 @@ SkyReplace(vector<R2Image*>* imageList) {
     {
       printf("IF I: %d\n", i);
       binaryImage = new R2Image(*images[0]);
-      images.at(i)->Feature(2, prevPointList, 50);
-      currH = images.at(i)->TrackPoints(prevPointList, 50, images.at(i+1), currentPointList);
+      images.at(i)->Feature(2, prevPointList, NSELECTED);
+      currH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
       for(int j = 0; j < 9; j++)
       {
           printf("currh[%d] = %f\n", j, currH[j]);
@@ -418,11 +421,10 @@ SkyReplace(vector<R2Image*>* imageList) {
           printf("currh[%d] = %f\n", j, currH[j]);
         }
       }
-
       
-      if(feature_i%2 != 1)
+      if(feature_i%2 == 1)
       {
-        for(int j = 0; j < 50; j++)
+        for(int j = 0; j < NSELECTED; j++)
         {
           prevPointList[j] = currentPointList[j]; 
         } 
@@ -430,17 +432,18 @@ SkyReplace(vector<R2Image*>* imageList) {
       else
       {
         printf("Making new features.\n");
-        images.at(i)->Feature(2, prevPointList, 50);
+        images.at(i)->Feature(2, prevPointList, NSELECTED);
       }
-      nextH = images.at(i)->TrackPoints(prevPointList, 50, images.at(i+1), currentPointList); 
+
+      nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList); 
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
       
 
       // APPLY H MATRIX
-      for(int j=0; j<images.at(i-1)->width; j++) 
+      for(int j=0; j<images.at(i)->width; j++) 
       {
-        for(int k=0;k<images.at(i-1)->height;k++) 
+        for(int k=0;k<images.at(i)->height;k++) 
         {
           if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
           {
@@ -465,9 +468,13 @@ SkyReplace(vector<R2Image*>* imageList) {
           currH[j] = nextH[j];
           printf("currh[%d] = %f\n", j, currH[j]);
       }
-      for(int j=0; j<images.at(i-1)->width; j++) 
+
+      binaryImage = new R2Image(*images[i]);
+      binaryImage->BinaryThreshold();
+
+      for(int j=0; j<images.at(i)->width; j++) 
       {
-        for(int k=0;k<images.at(i-1)->height;k++) 
+        for(int k=0;k<images.at(i)->height;k++) 
         {
           if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
           {
@@ -487,32 +494,6 @@ SkyReplace(vector<R2Image*>* imageList) {
 
     feature_i++;
   }
-  /*images.at(0)->Feature(2, prevPointList, 50);
-  H = images.at(0)->TrackPoints(prevPointList, 50, images.at(1), currentPointList);*/
-
-  /*binaryImage->BinaryThreshold();
-  for(int j=0; j<images.at(0)->width; j++) {
-    for(int k=0;k<images.at(0)->height;k++) {
-      if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        images.at(0)->SetPixel(j,k, Pixel((j+skyOffputX)*skyScale,(k+skyOffputY)*skyScale));
-      }
-    }
-  }*/
-
- /* binaryImage = new R2Image(*images[1]);
-  binaryImage->BinaryThreshold();
-  for(int j=0; j<images.at(0)->width; j++) {
-    for(int k=0;k<images.at(0)->height;k++) {
-      if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-        z = H[6]*((j+skyOffputX)*skyScale) + H[7]*((k+skyOffputY)*skyScale) + H[8]*1.0;
-        x = (H[0]*((j+skyOffputX)*skyScale) + H[1]*((k+skyOffputY)*skyScale) + H[2]*1.0) / z;
-        y = (H[3]*((j+skyOffputX)*skyScale) + H[4]*((k+skyOffputY)*skyScale) + H[5]*1.0) / z;
-
-        if(x > 0 && x < width && y > 0 && y < height)
-          images.at(1)->SetPixel(j,k, Pixel((int)x,(int)y));
-      }
-    }
-  }*/
 
   delete [] currH;
   delete [] nextH;
@@ -531,7 +512,7 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
   double ssd, minSSD;
 
   R2Pixel diff;
-  //Go through, checking all 150 points and the surrounding area 
+  //Go through, checking all points and the surrounding area 
   for(i = 0; i < size; i++) {
 
     //Find current x and y
@@ -585,7 +566,6 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
   double pX, pY, diffX, diffY;
 
-  // Loop 50 times
   for(i = 0; i < TRIAL_NUMBER; i++) {
     //Select 4 random valid index
     for(j = 0; j < 4; j++)
@@ -614,7 +594,6 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
       //Calculate distance between calculated points and true points
       diffX = pCalcX - (double)(selectedPoints[j] % width);
       diffY = pCalcY - (double)(selectedPoints[j] / width);
-
 
       //Check how close this distance is to the original, if close enough, count it as a supporter
       if(diffX*diffX + diffY*diffY < 9.0)
