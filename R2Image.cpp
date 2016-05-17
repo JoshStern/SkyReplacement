@@ -319,7 +319,6 @@ Brighten(double factor)
 
 void R2Image::
 BinaryThreshold() {
-
   //First blur the image
   this->Blur(5.0);
 
