@@ -2,7 +2,7 @@
 
 
 
-// Include files 
+// Include files
 
 #include "R2/R2.h"
 #include "R2Pixel.h"
@@ -24,7 +24,7 @@ R2Image::
 R2Image(void)
   : pixels(NULL),
     npixels(0),
-    width(0), 
+    width(0),
     height(0)
 {
 }
@@ -35,7 +35,7 @@ R2Image::
 R2Image(const char *filename)
   : pixels(NULL),
     npixels(0),
-    width(0), 
+    width(0),
     height(0)
 {
   // Read image
@@ -48,7 +48,7 @@ R2Image::
 R2Image(int width, int height)
   : pixels(NULL),
     npixels(width * height),
-    width(width), 
+    width(width),
     height(height)
 {
   // Allocate pixels
@@ -62,15 +62,15 @@ R2Image::
 R2Image(int width, int height, const R2Pixel *p)
   : pixels(NULL),
     npixels(width * height),
-    width(width), 
+    width(width),
     height(height)
 {
   // Allocate pixels
   pixels = new R2Pixel [ npixels ];
   assert(pixels);
 
-  // Copy pixels 
-  for (int i = 0; i < npixels; i++) 
+  // Copy pixels
+  for (int i = 0; i < npixels; i++)
     pixels[i] = p[i];
 }
 
@@ -80,16 +80,16 @@ R2Image::
 R2Image(const R2Image& image)
   : pixels(NULL),
     npixels(image.npixels),
-    width(image.width), 
+    width(image.width),
     height(image.height)
-    
+
 {
   // Allocate pixels
   pixels = new R2Pixel [ npixels ];
   assert(pixels);
 
-  // Copy pixels 
-  for (int i = 0; i < npixels; i++) 
+  // Copy pixels
+  for (int i = 0; i < npixels; i++)
     pixels[i] = image.pixels[i];
 }
 
@@ -119,8 +119,8 @@ operator=(const R2Image& image)
   pixels = new R2Pixel [ npixels ];
   assert(pixels);
 
-  // Copy pixels 
-  for (int i = 0; i < npixels; i++) 
+  // Copy pixels
+  for (int i = 0; i < npixels; i++)
     pixels[i] = image.pixels[i];
 
   // Return image
@@ -160,7 +160,7 @@ svdTest(void)
 	linEquations[3][4] = p3[0];
 	linEquations[3][5] = p3[1];
 	linEquations[3][6] = 1.0;
-	
+
 	linEquations[4][1] = p4[0]*p4[0];
 	linEquations[4][2] = p4[0]*p4[1];
 	linEquations[4][3] = p4[1]*p4[1];
@@ -198,51 +198,51 @@ svdTest(void)
 	printf("Conic coefficients: %f, %f, %f, %f, %f, %f\n",nullspaceMatrix[1][smallestIndex],nullspaceMatrix[2][smallestIndex],nullspaceMatrix[3][smallestIndex],nullspaceMatrix[4][smallestIndex],nullspaceMatrix[5][smallestIndex],nullspaceMatrix[6][smallestIndex]);
 
 	// make sure the solution is correct:
-	printf("Equation #1 result: %f\n",	p1[0]*p1[0]*nullspaceMatrix[1][smallestIndex] + 
-										p1[0]*p1[1]*nullspaceMatrix[2][smallestIndex] + 
-										p1[1]*p1[1]*nullspaceMatrix[3][smallestIndex] + 
-										p1[0]*nullspaceMatrix[4][smallestIndex] + 
-										p1[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("Equation #1 result: %f\n",	p1[0]*p1[0]*nullspaceMatrix[1][smallestIndex] +
+										p1[0]*p1[1]*nullspaceMatrix[2][smallestIndex] +
+										p1[1]*p1[1]*nullspaceMatrix[3][smallestIndex] +
+										p1[0]*nullspaceMatrix[4][smallestIndex] +
+										p1[1]*nullspaceMatrix[5][smallestIndex] +
 										nullspaceMatrix[6][smallestIndex]);
 
-	printf("Equation #2 result: %f\n",	p2[0]*p2[0]*nullspaceMatrix[1][smallestIndex] + 
-										p2[0]*p2[1]*nullspaceMatrix[2][smallestIndex] + 
-										p2[1]*p2[1]*nullspaceMatrix[3][smallestIndex] + 
-										p2[0]*nullspaceMatrix[4][smallestIndex] + 
-										p2[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("Equation #2 result: %f\n",	p2[0]*p2[0]*nullspaceMatrix[1][smallestIndex] +
+										p2[0]*p2[1]*nullspaceMatrix[2][smallestIndex] +
+										p2[1]*p2[1]*nullspaceMatrix[3][smallestIndex] +
+										p2[0]*nullspaceMatrix[4][smallestIndex] +
+										p2[1]*nullspaceMatrix[5][smallestIndex] +
 										nullspaceMatrix[6][smallestIndex]);
 
-	printf("Equation #3 result: %f\n",	p3[0]*p3[0]*nullspaceMatrix[1][smallestIndex] + 
-										p3[0]*p3[1]*nullspaceMatrix[2][smallestIndex] + 
-										p3[1]*p3[1]*nullspaceMatrix[3][smallestIndex] + 
-										p3[0]*nullspaceMatrix[4][smallestIndex] + 
-										p3[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("Equation #3 result: %f\n",	p3[0]*p3[0]*nullspaceMatrix[1][smallestIndex] +
+										p3[0]*p3[1]*nullspaceMatrix[2][smallestIndex] +
+										p3[1]*p3[1]*nullspaceMatrix[3][smallestIndex] +
+										p3[0]*nullspaceMatrix[4][smallestIndex] +
+										p3[1]*nullspaceMatrix[5][smallestIndex] +
 										nullspaceMatrix[6][smallestIndex]);
 
-	printf("Equation #4 result: %f\n",	p4[0]*p4[0]*nullspaceMatrix[1][smallestIndex] + 
-										p4[0]*p4[1]*nullspaceMatrix[2][smallestIndex] + 
-										p4[1]*p4[1]*nullspaceMatrix[3][smallestIndex] + 
-										p4[0]*nullspaceMatrix[4][smallestIndex] + 
-										p4[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("Equation #4 result: %f\n",	p4[0]*p4[0]*nullspaceMatrix[1][smallestIndex] +
+										p4[0]*p4[1]*nullspaceMatrix[2][smallestIndex] +
+										p4[1]*p4[1]*nullspaceMatrix[3][smallestIndex] +
+										p4[0]*nullspaceMatrix[4][smallestIndex] +
+										p4[1]*nullspaceMatrix[5][smallestIndex] +
 										nullspaceMatrix[6][smallestIndex]);
 
-	printf("Equation #5 result: %f\n",	p5[0]*p5[0]*nullspaceMatrix[1][smallestIndex] + 
-										p5[0]*p5[1]*nullspaceMatrix[2][smallestIndex] + 
-										p5[1]*p5[1]*nullspaceMatrix[3][smallestIndex] + 
-										p5[0]*nullspaceMatrix[4][smallestIndex] + 
-										p5[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("Equation #5 result: %f\n",	p5[0]*p5[0]*nullspaceMatrix[1][smallestIndex] +
+										p5[0]*p5[1]*nullspaceMatrix[2][smallestIndex] +
+										p5[1]*p5[1]*nullspaceMatrix[3][smallestIndex] +
+										p5[0]*nullspaceMatrix[4][smallestIndex] +
+										p5[1]*nullspaceMatrix[5][smallestIndex] +
 										nullspaceMatrix[6][smallestIndex]);
 
 	R2Point test_point(0.34,-2.8);
 
-	printf("A point off the conic: %f\n",	test_point[0]*test_point[0]*nullspaceMatrix[1][smallestIndex] + 
-											test_point[0]*test_point[1]*nullspaceMatrix[2][smallestIndex] + 
-											test_point[1]*test_point[1]*nullspaceMatrix[3][smallestIndex] + 
-											test_point[0]*nullspaceMatrix[4][smallestIndex] + 
-											test_point[1]*nullspaceMatrix[5][smallestIndex] + 
+	printf("A point off the conic: %f\n",	test_point[0]*test_point[0]*nullspaceMatrix[1][smallestIndex] +
+											test_point[0]*test_point[1]*nullspaceMatrix[2][smallestIndex] +
+											test_point[1]*test_point[1]*nullspaceMatrix[3][smallestIndex] +
+											test_point[0]*nullspaceMatrix[4][smallestIndex] +
+											test_point[1]*nullspaceMatrix[5][smallestIndex] +
 											nullspaceMatrix[6][smallestIndex]);
 
-	return;	
+	return;
 }
 
 
@@ -253,35 +253,42 @@ double* R2Image::constructHomographyMat(double** A, double** AMatch, double** M,
   double* H = new double[9];
 
   //Compute odd rows:
-  for(j=1; j<=8; j+=2) {
-    for(i=1; i<=3; i++)
+  for (j = 1; j <= 8; j+=2) {
+    for(i = 1; i <= 3; i++) {
       M[j][i] = 0.0;
-    for(i=4,k=1; i<=6; i++,k++)
+    }
+    for(i = 4, k = 1; i <= 6; i++, k++) {
       M[j][i] = (-AMatch[(j+1)/2][3])*A[(j+1)/2][k];
-    for(i=7,k=1; i<=9; i++,k++)
+    }
+    for(i = 7, k = 1; i <= 9; i++, k++) {
       M[j][i] = (AMatch[(j+1)/2][2])*A[(j+1)/2][k];
+    }
   }
   //Compute Even rows
-  for(j=2; j<=8; j+=2) {
-    for(i=1,k=1; i<=3; i++,k++)
+  for (j = 2; j <= 8; j+=2) {
+    for (i = 1, k = 1; i <= 3; i++, k++) {
       M[j][i] = (AMatch[j/2][3])*A[j/2][k];
-    for(i=4; i<=6; i++)
+    }
+    for (i = 4; i <= 6; i++) {
       M[j][i] = 0;
-    for(i=7,k=1; i<=9; i++,k++)
-      M[j][i] = (-AMatch[j/2][1])*A[j/2][k];      
+    }
+    for (i = 7, k = 1; i <= 9; i++, k++) {
+      M[j][i] = (-AMatch[j/2][1])*A[j/2][k];
+    }
   }
 
   // compute the SVD
   svdcmp(M, 8, 9, sv, nullspaceMatrix);
 
-  //Find min 
+  //Find min
   int minsvIndex = 1;
-  for(i=2; i<10; i++) {
-    if(sv[i] < sv[minsvIndex])
+  for (i = 2; i < 10; i++) {
+    if (sv[i] < sv[minsvIndex]) {
       minsvIndex = i;
+    }
   }
 
-  for(i=0; i<9; i++) {
+  for (i = 0; i < 9; i++) {
     H[i] = nullspaceMatrix[i+1][minsvIndex];
   }
   return H;
@@ -303,7 +310,7 @@ Brighten(double factor)
   // Brighten the image by multiplying each pixel component by the factor.
   // This is implemented for you as an example of how to access and set pixels
   for (int i = 0; i < width; i++) {
-    for (int j = 0;  j < height; j++) {
+    for (int j = 0; j < height; j++) {
       Pixel(i,j) *= factor;
       Pixel(i,j).Clamp();
     }
@@ -312,52 +319,58 @@ Brighten(double factor)
 
 void R2Image::
 BinaryThreshold() {
+<<<<<<< HEAD
 
   //First blur the image:
   this->Blur(2.0); 
+=======
+  //First blur the image
+  this->Blur(5.0);
+>>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
 
   R2Pixel thresh(0,0,0,1);
   //Do a general search of image to find a decent max pixel
-  /*for (int i = 0; i < width; i+=10) {
-    for (int j = 0;  j < height; j+=10) {
-      if(Pixel(i,j) > thresh)
-        thresh = Pixel(i,j);
-    }
-  }*/
+  // for (int i = 0; i < width; i+=10) {
+  //   for (int j = 0; j < height; j+=10) {
+  //     if(Pixel(i,j) > thresh)
+  //       thresh = Pixel(i,j);
+  //   }
+  // }
 
-  float blue_thresh = 0.0f; 
-  // only works for blue skys... but...
+  float blue_thresh = 0.0f;
+  // only works for blue skies... but...
 
   // search for blue thresh
-  for (int i = 0; i < width; i+=10) {
-    for (int j = 0;  j < height; j+=10) {
-      if(Pixel(i,j).Blue() > blue_thresh)
+  for (int i = 0; i < width; i+=50) {
+    for (int j = 0; j < height; j+=50) {
+      if (Pixel(i,j).Blue() > blue_thresh) {
         blue_thresh = Pixel(i,j).Blue();
+      }
     }
   }
 
-  blue_thresh *= 0.8; 
+  blue_thresh *= 0.8;
   //thresh *= 0.2;
   //printf("THRESHOLD VALUE FOUND: (%f, %f, %f)\n", thresh.Red(), thresh.Green(), thresh.Blue());
 
-  printf("THRESHOLD BLUE: %f\n", blue_thresh); 
+  printf("THRESHOLD BLUE: %f\n", blue_thresh);
 
   float bl;
-  R2Pixel white(1, 1, 1, 1); 
-  R2Pixel blk(0, 0, 0, 1); 
+  R2Pixel white(1, 1, 1, 1);
+  R2Pixel blk(0, 0, 0, 1);
 
   for (int i = 0; i < width; i++) {
     for (int j = 0;  j < height; j++) {
-      bl = (float) Pixel(i,j).Blue(); 
+      bl = (float) Pixel(i,j).Blue();
       //if(Pixel(i,j) > thresh)
-      if(bl > blue_thresh)
+      if (bl > blue_thresh) {
         SetPixel(i,j, white);
-      else
+      } else {
         SetPixel(i,j, blk);
+      }
     }
   }
-
-  printf("end of binary thresh\n");
+  // printf("end of binary thresh\n");
 }
 
 void R2Image::
@@ -372,38 +385,59 @@ SkyReplace(vector<R2Image*>* imageList) {
   double* currH = new double[9];
   double* nextH = new double[9];
   double* tempH = new double[9];
-  currH[0]=1; currH[1]=0; currH[2]=0; 
-  currH[3]=0; currH[4]=1; currH[5]=0; 
-  currH[6]=0; currH[7]=0; currH[8]=1; 
+
+  currH[0] = 1;
+  currH[1] = 0;
+  currH[2] = 0;
+  currH[3] = 0;
+  currH[4] = 1;
+  currH[5] = 0;
+  currH[6] = 0;
+  currH[7] = 0;
+  currH[8] = 1;
 
   int* prevPointList = new int[NSELECTED];
   int* currentPointList = new int[NSELECTED];
   double x, y, z;
 
   R2Image* binaryImage;
-  int feature_i = 0; 
+  int feature_i = 0;
 
+<<<<<<< HEAD
   double skyScale = 0.8;
 
   for(int i = 0; i < images.size(); i++)
   {
+=======
+  for (int i = 0; i < images.size(); i++) {
+>>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
     // first image
-    if(i == 0)
-    {
+    if (i == 0) {
       printf("IF I: %d\n", i);
       binaryImage = new R2Image(*images[0]);
       images.at(i)->Feature(2, prevPointList, NSELECTED);
 
+<<<<<<< HEAD
+=======
+      for (int p = 0; p < NSELECTED; p++) {
+        for (int m = -3; m < 3; m++) {
+          for (int n = -3; n < 3; n++) {
+            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
+          }
+        }
+      }
+
+>>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
       nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
 
 
-      for(int j = 0; j < 9; j++)
-      {
+      for (int j = 0; j < 9; j++) {
           printf("currh[%d] = %f\n", j, currH[j]);
       }
       binaryImage->BinaryThreshold();
-      
+
       // set texture for first image immediately
+<<<<<<< HEAD
       for(int j=0; j<images.at(i)->width; j++) 
       {
         for(int k=0;k<images.at(i)->height;k++) 
@@ -411,18 +445,22 @@ SkyReplace(vector<R2Image*>* imageList) {
           if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
           {
             images.at(i)->SetPixel(j,k, Pixel(j*skyScale,k*skyScale));
+=======
+      for (int j = 0; j < images.at(i)->width; j++) {
+        for (int k = 0; k < images.at(i)->height; k++) {
+          if (binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
+            images.at(i)->SetPixel(j,k, Pixel(j,k));
+>>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
           }
         }
       }
     }
-    // AFTER FIRST ELEMENT, BEFORE LAST ELEMENT 
-    else if(i < images.size() - 1)
-    {
+    // AFTER FIRST ELEMENT, BEFORE LAST ELEMENT
+    else if (i < images.size() - 1) {
       printf("ELIF I: %d\n", i);
 
-      
-      for(int j = 0; j < 9; j++)
-      {
+
+      for (int j = 0; j < 9; j++) {
         tempH[j] = currH[j];
       }
 
@@ -437,25 +475,20 @@ SkyReplace(vector<R2Image*>* imageList) {
       currH[7] = tempH[6]*nextH[1] + tempH[7]*nextH[4] + tempH[8]*nextH[7];
       currH[8] = tempH[6]*nextH[2] + tempH[7]*nextH[5] + tempH[8]*nextH[8];
 
-
-
-      if(feature_i%10 == 9)
-      {
+      if (feature_i%10 == 9) {
         printf("Making new features.\n");
         images.at(i)->Feature(2, prevPointList, NSELECTED);
       }
-      else
-      {
-        for(int j = 0; j < NSELECTED; j++)
-        {
-          prevPointList[j] = currentPointList[j]; 
-        } 
-        
+      else {
+        for (int j = 0; j < NSELECTED; j++) {
+          prevPointList[j] = currentPointList[j];
+        }
       }
 
-      nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList); 
+      nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
+<<<<<<< HEAD
       
 
       // APPLY H MATRIX
@@ -472,17 +505,39 @@ SkyReplace(vector<R2Image*>* imageList) {
             x /= z; y /=z;
             x *= skyScale; y *= skyScale;
             if(x > 0 && x < images.at(i)->width && y > 0 && y < images.at(i)->height){
+=======
+
+      for (int p = 0; p < NSELECTED; p++) {
+        for (int m = -3; m < 3; m++) {
+          for (int n = -3; n < 3; n++) {
+            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
+          }
+        }
+      }
+
+
+      // APPLY H MATRIX
+      for (int j=0; j<images.at(i)->width; j++) {
+        for (int k=0;k<images.at(i)->height;k++) {
+          if (binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
+            x = j*currH[0] + k*currH[1] + 1*currH[2];
+            y = j*currH[3] + k*currH[4] + 1*currH[5];
+            z = j*currH[6] + k*currH[7] + 1*currH[8];
+
+            x /= z; y /=z;
+
+            if (x > 0 && x < images.at(i)->width &&
+                y > 0 && y < images.at(i)->height) {
+>>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
               images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
             }
           }
         }
       }
     }
-    else
-    {
+    else {
       printf("ONCE: I: %d\n", i);
-      for(int j = 0; j < 9; j++)
-      {
+      for (int j = 0; j < 9; j++) {
         tempH[j] = currH[j];
       }
 
@@ -500,19 +555,17 @@ SkyReplace(vector<R2Image*>* imageList) {
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
 
-      for(int j=0; j<images.at(i)->width; j++) 
-      {
-        for(int k=0;k<images.at(i)->height;k++) 
-        {
-          if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
-          {
+      for (int j = 0; j < images.at(i)->width; j++) {
+        for (int k = 0; k < images.at(i)->height; k++) {
+          if (binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
             x = j*currH[0] + k*currH[1] + 1*currH[2];
             y = j*currH[3] + k*currH[4] + 1*currH[5];
             z = j*currH[6] + k*currH[7] + 1*currH[8];
 
             x /= z; y /=z;
 
-            if(x > 0 && x < images.at(i)->width && y > 0 && y < images.at(i)->height){
+            if (x > 0 && x < images.at(i)->width &&
+                y > 0 && y < images.at(i)->height) {
               images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
             }
           }
@@ -540,8 +593,8 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
   double ssd, minSSD;
 
   R2Pixel diff;
-  //Go through, checking all points and the surrounding area 
-  for(i = 0; i < size; i++) {
+  //Go through, checking all points and the surrounding area
+  for (i = 0; i < size; i++) {
 
     //Find current x and y
     cX = points[i] % width;
@@ -551,23 +604,23 @@ TrackPoints(int* points, int size, R2Image* otherImage, int* outPoints) {
     minPoint = 0;
 
     // Check out a 20% section of the image, starting from center and moving out
-    for(c = -(height/30); c < (height/30); c++) {
-      for(p = -(width/30); p < (width/30); p++) {
+    for (c = -(height/30); c < (height/30); c++) {
+      for (p = -(width/30); p < (width/30); p++) {
         // Calculate ssd over kernel
         ssd = 0;
-        for(k = -KERNEL_SIZE*KERNEL_MULTIPLIER; k < KERNEL_SIZE*KERNEL_MULTIPLIER; k += KERNEL_MULTIPLIER) {
-          for(l = -KERNEL_SIZE*KERNEL_MULTIPLIER; l < KERNEL_SIZE*KERNEL_MULTIPLIER; l += KERNEL_MULTIPLIER) {
-            if(cY + k < 0 || cY + k > height-1 || cY + c + k < 0 || cY + c + k > height-1
-              || cX + l < 0 || cX + l > width-1 || cX + p + l < 0 || cX + p + l > width-1) {
+        for (k = -KERNEL_SIZE*KERNEL_MULTIPLIER; k < KERNEL_SIZE*KERNEL_MULTIPLIER; k += KERNEL_MULTIPLIER) {
+          for (l = -KERNEL_SIZE*KERNEL_MULTIPLIER; l < KERNEL_SIZE*KERNEL_MULTIPLIER; l += KERNEL_MULTIPLIER) {
+            if (cY + k < 0 || cY + k > height-1 || cY + c + k < 0 || cY + c + k > height-1 ||
+                cX + l < 0 || cX + l > width-1 || cX + p + l < 0 || cX + p + l > width-1) {
               ssd += 1.0;
             }
             else {
               diff = Pixel(cX + l, cY + k) - otherImage->Pixel(cX + p + l, cY + c + k);
-              ssd +=  diff.Red()*diff.Red() + diff.Green()*diff.Green() + diff.Blue()*diff.Blue();
+              ssd += diff.Red()*diff.Red() + diff.Green()*diff.Green() + diff.Blue()*diff.Blue();
             }
           }
         }
-        if(ssd < minSSD) {
+        if (ssd < minSSD) {
           minSSD = ssd;
           minPoint = (cX + p) + (cY + c)*width;
         }
@@ -594,13 +647,14 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
   double pCalcX=-1, pCalcY=-1, pCalcZ=-1;
   double pX, pY, diffX, diffY;
 
-  for(i = 0; i < TRIAL_NUMBER; i++) {
-    //Select 4 random valid index
-    for(j = 0; j < 4; j++)
+  for (i = 0; i < TRIAL_NUMBER; i++) {
+    // Select 4 random valid index
+    for (j = 0; j < 4; j++) {
       p[j] = rand() % NSELECTED;
+    }
 
-    //Fill our A and AMatch matrices
-    for(j = 1; j <= 4; j++){
+    // Fill our A and AMatch matrices
+    for (j = 1; j <= 4; j++) {
       A[j][1] = (double)(selectedPoints[p[j-1]] % width);
       A[j][2] = (double)(selectedPoints[p[j-1]] / width);
       A[j][3] = 1.0;
@@ -608,38 +662,39 @@ double* R2Image::HomogRANSAC(int* selectedPoints, int* foundPoints, int NSELECTE
       AMatch[j][2] = (double)(foundPoints[p[j-1]] / width);
       AMatch[j][3] = 1.0;
     }
-    //Find our H matrix
-    H = constructHomographyMat(AMatch, A, M, nullspaceMatrix);
 
+    // Find our H matrix
+    H = constructHomographyMat(AMatch, A, M, nullspaceMatrix);
     c = 0;
-    //Check it against the others
-    for(j = 0; j < NSELECTED; j++) {
+
+    // Check it against the others
+    for (j = 0; j < NSELECTED; j++) {
       pX = (double)(foundPoints[j] % width);
       pY = (double)(foundPoints[j] / width);
       pCalcZ = H[6]*pX + H[7]*pY + H[8]*1.0;
       pCalcX = (H[0]*pX + H[1]*pY + H[2]*1.0) / pCalcZ;
       pCalcY = (H[3]*pX + H[4]*pY + H[5]*1.0) / pCalcZ;
-      //Calculate distance between calculated points and true points
+      // Calculate distance between calculated points and true points
       diffX = pCalcX - (double)(selectedPoints[j] % width);
       diffY = pCalcY - (double)(selectedPoints[j] / width);
 
-      //Check how close this distance is to the original, if close enough, count it as a supporter
-      if(diffX*diffX + diffY*diffY < 9.0)
+      // Check how close this distance is to the original
+      // If close enough, count it as a supporter
+      if (diffX*diffX + diffY*diffY < 9.0) {
         c++;
+      }
     }
     // Find biggest inlier
-    if(c > maxC){
+    if (c > maxC){
       maxC = c;
-      for(j=0; j<9; j++) {
+      for (j = 0; j < 9; j++) {
         HBest[j] = H[j];
       }
     }
   }
 
   printf("maxC: %d\n", maxC);
-
   return HBest;
-
 }
 
 void R2Image::
@@ -662,20 +717,20 @@ SobelX(void)
   // Loop through every pixel except the border ones applying convolution operation
   for(int i = 1; i < height-1; i++){
     for(int j = 1; j < width-1; j++){
-      finalImage->SetPixel(j, i, 
+      finalImage->SetPixel(j, i,
                           Pixel(j-1, i-1) * kern[0][0] +
                           Pixel(j, i-1) * kern[0][1] +
-                          Pixel(j+1, i-1) * kern[0][2] + 
+                          Pixel(j+1, i-1) * kern[0][2] +
                           Pixel(j-1, i) * kern[1][0] +
                           Pixel(j, i) * kern[1][1] +
                           Pixel(j+1, i) * kern[1][2] +
                           Pixel(j-1, i+1) * kern[2][0] +
                           Pixel(j, i+1) * kern[2][1] +
                           Pixel(j+1, i+1) * kern[2][2]
-        );               
+        );
     }
   }
-  
+
   for(i = 1; i < height-1; i++){
     for(j = 1; j < width-1; j++){
       SetPixel(j,i, finalImage->Pixel(j,i));
@@ -705,20 +760,20 @@ SobelY(void)
   // Loop through every pixel except the border ones applying convolution operation
   for(int i = 1; i < height-1; i++){
     for(int j = 1; j < width-1; j++){
-      finalImage->SetPixel(j, i, 
+      finalImage->SetPixel(j, i,
                           Pixel(j-1, i-1) * kern[0][0] +
                           Pixel(j, i-1) * kern[0][1] +
-                          Pixel(j+1, i-1) * kern[0][2] + 
+                          Pixel(j+1, i-1) * kern[0][2] +
                           Pixel(j-1, i) * kern[1][0] +
                           Pixel(j, i) * kern[1][1] +
                           Pixel(j+1, i) * kern[1][2] +
                           Pixel(j-1, i+1) * kern[2][0] +
                           Pixel(j, i+1) * kern[2][1] +
                           Pixel(j+1, i+1) * kern[2][2]
-        );             
+        );
     }
   }
-  
+
   for(i = 1; i < height-1; i++){
     for(j = 1; j < width-1; j++){
       SetPixel(j,i, finalImage->Pixel(j,i));
@@ -731,7 +786,7 @@ void R2Image::
 LoG(void)
 {
   // Apply the LoG oprator to the image
-  
+
   // FILL IN IMPLEMENTATION HERE (REMOVE PRINT STATEMENT WHEN DONE)
   fprintf(stderr, "LoG() not implemented\n");
 }
@@ -757,7 +812,7 @@ BlurXThread(R2Image* input, R2Image* output, double* kern, int size, int startRo
   for(i = startRow; i < endRow; i++){
     for(j = 0; j < input->width; j++){
       tempPix.Reset(0.0,0.0,0.0,1.0);
-      for(k = -size + 1; k < size; k++) { 
+      for(k = -size + 1; k < size; k++) {
         if(j+k < 0){ //If its less than zero, assume it's the zero
           tempPix += input->Pixel(0, i) * kern[abs(k)];
         }
@@ -767,8 +822,8 @@ BlurXThread(R2Image* input, R2Image* output, double* kern, int size, int startRo
         else{
           tempPix += input->Pixel(j+k, i) * kern[abs(k)];
         }
-      }    
-      output->SetPixel(j, i, tempPix);        
+      }
+      output->SetPixel(j, i, tempPix);
     }
   }
 }
@@ -792,8 +847,8 @@ BlurYThread(R2Image* input, R2Image* output, double* kern, int size, int startCo
         else {
           tempPix += input->Pixel(j, i+k) * kern[abs(k)];
         }
-      }    
-      output->SetPixel(j, i, tempPix);    
+      }
+      output->SetPixel(j, i, tempPix);
     }
   }
 }
@@ -831,7 +886,7 @@ Blur(double sigma)
   X3.join();
   X4.join();
 
-  //Run over Y 
+  //Run over Y
   std::thread Y1(R2Image::BlurYThread, tempImage, this, kern, size, 0, width/4);
   std::thread Y2(R2Image::BlurYThread, tempImage, this, kern, size, (width/4),width/2);
   std::thread Y3(R2Image::BlurYThread, tempImage, this, kern, size, (width/2),(3*width)/4);
@@ -849,7 +904,7 @@ Blur(double sigma)
 
 
 int R2Image::
-Partition(int* pm, int lo, int hi) 
+Partition(int* pm, int lo, int hi)
 {
   int i = lo-1;
   int j = hi+1;
@@ -877,7 +932,7 @@ Partition(int* pm, int lo, int hi)
 }
 
 void R2Image::
-QuickSort(int* pm, int lo, int hi) 
+QuickSort(int* pm, int lo, int hi)
 {
   if(lo < hi) {
     int p = Partition(pm, lo, hi);
@@ -925,7 +980,7 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   R2Pixel* red = new R2Pixel(1.0,0.0,0.0,1.0);
   R2Image HarrisImage(*this);
   //Allocate space for a coordinate map
-  
+
   for(i = 0; i < npixels; i++) {
     pointMap[i] = i;
   }
@@ -935,7 +990,7 @@ Feature(double sigma, int* selectedPoints, int NSELECTED)
   HarrisImage.QuickSort(pointMap, 1, npixels-2);
 
   HarrisImage.SelectPoints(pointMap, selectedPoints, NSELECTED);
-  
+
   delete red;
   delete [] pointMap;
 }
@@ -993,7 +1048,7 @@ void R2Image::
 blendOtherImageTranslated(R2Image * otherImage)
 {
 	// find at least 100 features on this image, and another 100 on the "otherImage". Based on these,
-	// compute the matching translation (pixel precision is OK), and blend the translated "otherImage" 
+	// compute the matching translation (pixel precision is OK), and blend the translated "otherImage"
 	// into this image with a 50% opacity.
 	fprintf(stderr, "fit other image using translation and blend imageB over imageA\n");
 	return;
@@ -1025,13 +1080,13 @@ Read(const char *filename)
     fprintf(stderr, "Input file has no extension (e.g., .jpg).\n");
     return 0;
   }
-  
+
   // Read file of appropriate type
   if (!strncmp(input_extension, ".bmp", 4)) return ReadBMP(filename);
   else if (!strncmp(input_extension, ".ppm", 4)) return ReadPPM(filename);
   else if (!strncmp(input_extension, ".jpg", 4)) return ReadJPEG(filename);
   else if (!strncmp(input_extension, ".jpeg", 5)) return ReadJPEG(filename);
-  
+
   // Should never get here
   fprintf(stderr, "Unrecognized image file extension");
   return 0;
@@ -1048,7 +1103,7 @@ Write(const char *filename) const
     fprintf(stderr, "Input file has no extension (e.g., .jpg).\n");
     return 0;
   }
-  
+
   // Write file of appropriate type
   if (!strncmp(input_extension, ".bmp", 4)) return WriteBMP(filename);
   else if (!strncmp(input_extension, ".ppm", 4)) return WritePPM(filename, 1);
@@ -1117,7 +1172,7 @@ typedef struct tagRGBQUAD {
 
 static unsigned short int WordReadLE(FILE *fp)
 {
-  // Read a unsigned short int from a file in little endian format 
+  // Read a unsigned short int from a file in little endian format
   unsigned short int lsb, msb;
   lsb = getc(fp);
   msb = getc(fp);
@@ -1129,7 +1184,7 @@ static unsigned short int WordReadLE(FILE *fp)
 static void WordWriteLE(unsigned short int x, FILE *fp)
 {
   // Write a unsigned short int to a file in little endian format
-  unsigned char lsb = (unsigned char) (x & 0x00FF); putc(lsb, fp); 
+  unsigned char lsb = (unsigned char) (x & 0x00FF); putc(lsb, fp);
   unsigned char msb = (unsigned char) (x >> 8); putc(msb, fp);
 }
 
@@ -1137,7 +1192,7 @@ static void WordWriteLE(unsigned short int x, FILE *fp)
 
 static unsigned int DWordReadLE(FILE *fp)
 {
-  // Read a unsigned int word from a file in little endian format 
+  // Read a unsigned int word from a file in little endian format
   unsigned int b1 = getc(fp);
   unsigned int b2 = getc(fp);
   unsigned int b3 = getc(fp);
@@ -1149,7 +1204,7 @@ static unsigned int DWordReadLE(FILE *fp)
 
 static void DWordWriteLE(unsigned int x, FILE *fp)
 {
-  // Write a unsigned int to a file in little endian format 
+  // Write a unsigned int to a file in little endian format
   unsigned char b1 = (x & 0x000000FF); putc(b1, fp);
   unsigned char b2 = ((x >> 8) & 0x000000FF); putc(b2, fp);
   unsigned char b3 = ((x >> 16) & 0x000000FF); putc(b3, fp);
@@ -1160,7 +1215,7 @@ static void DWordWriteLE(unsigned int x, FILE *fp)
 
 static int LongReadLE(FILE *fp)
 {
-  // Read a int word from a file in little endian format 
+  // Read a int word from a file in little endian format
   int b1 = getc(fp);
   int b2 = getc(fp);
   int b3 = getc(fp);
@@ -1172,7 +1227,7 @@ static int LongReadLE(FILE *fp)
 
 static void LongWriteLE(int x, FILE *fp)
 {
-  // Write a int to a file in little endian format 
+  // Write a int to a file in little endian format
   char b1 = (x & 0x000000FF); putc(b1, fp);
   char b2 = ((x >> 8) & 0x000000FF); putc(b2, fp);
   char b3 = ((x >> 16) & 0x000000FF); putc(b3, fp);
@@ -1198,14 +1253,14 @@ ReadBMP(const char *filename)
   bmfh.bfReserved1 = WordReadLE(fp);
   bmfh.bfReserved2 = WordReadLE(fp);
   bmfh.bfOffBits = DWordReadLE(fp);
-  
+
   /* Check file header */
   assert(bmfh.bfType == BMP_BF_TYPE);
   /* ignore bmfh.bfSize */
   /* ignore bmfh.bfReserved1 */
   /* ignore bmfh.bfReserved2 */
   assert(bmfh.bfOffBits == BMP_BF_OFF_BITS);
-  
+
   /* Read info header */
   BITMAPINFOHEADER bmih;
   bmih.biSize = DWordReadLE(fp);
@@ -1219,8 +1274,8 @@ ReadBMP(const char *filename)
   bmih.biYPelsPerMeter = LongReadLE(fp);
   bmih.biClrUsed = DWordReadLE(fp);
   bmih.biClrImportant = DWordReadLE(fp);
-  
-  // Check info header 
+
+  // Check info header
   assert(bmih.biSize == BMP_BI_SIZE);
   assert(bmih.biWidth > 0);
   assert(bmih.biHeight > 0);
@@ -1247,7 +1302,7 @@ ReadBMP(const char *filename)
     return 0;
   }
 
-  // Read buffer 
+  // Read buffer
   fseek(fp, (long) bmfh.bfOffBits, SEEK_SET);
   if (fread(buffer, 1, bmih.biSizeImage, fp) != bmih.biSizeImage) {
     fprintf(stderr, "Error while reading BMP file %s", filename);
@@ -1300,7 +1355,7 @@ WriteBMP(const char *filename) const
   int rowsize = 3 * width;
   if ((rowsize % 4) != 0) rowsize = (rowsize / 4 + 1) * 4;
 
-  // Write file header 
+  // Write file header
   BITMAPFILEHEADER bmfh;
   bmfh.bfType = BMP_BF_TYPE;
   bmfh.bfSize = BMP_BF_OFF_BITS + rowsize * height;
@@ -1313,7 +1368,7 @@ WriteBMP(const char *filename) const
   WordWriteLE(bmfh.bfReserved2, fp);
   DWordWriteLE(bmfh.bfOffBits, fp);
 
-  // Write info header 
+  // Write info header
   BITMAPINFOHEADER bmih;
   bmih.biSize = BMP_BI_SIZE;
   bmih.biWidth = width;
@@ -1357,12 +1412,12 @@ WriteBMP(const char *filename) const
     // Pad row
     for (int i = 0; i < pad; i++) fputc(0, fp);
   }
-  
+
   // Close file
   fclose(fp);
 
   // Return success
-  return 1;  
+  return 1;
 }
 
 
@@ -1403,7 +1458,7 @@ ReadPPM(const char *filename)
     fclose(fp);
     return 0;
   }
-	
+
   // Read max value
   double max_value;
   if (fscanf(fp, "%lf", &max_value) != 1) {
@@ -1411,7 +1466,7 @@ ReadPPM(const char *filename)
     fclose(fp);
     return 0;
   }
-	
+
   // Allocate image pixels
   pixels = new R2Pixel [ width * height ];
   if (!pixels) {
@@ -1426,7 +1481,7 @@ ReadPPM(const char *filename)
     int c = getc(fp);
     if (!isspace(c)) putc(c, fp);
 
-    // Read raw image data 
+    // Read raw image data
     // First ppm pixel is top-left, so read in opposite scan-line order
     for (int j = height-1; j >= 0; j--) {
       for (int i = 0; i < width; i++) {
@@ -1439,7 +1494,7 @@ ReadPPM(const char *filename)
     }
   }
   else {
-    // Read asci image data 
+    // Read asci image data
     // First ppm pixel is top-left, so read in opposite scan-line order
     for (int j = height-1; j >= 0; j--) {
       for (int i = 0; i < width; i++) {
@@ -1482,7 +1537,7 @@ WritePPM(const char *filename, int ascii) const
       return 0;
     }
 
-    // Print PPM image file 
+    // Print PPM image file
     // First ppm pixel is top-left, so write in opposite scan-line order
     fprintf(fp, "P3\n");
     fprintf(fp, "%d %d\n", width, height);
@@ -1510,8 +1565,8 @@ WritePPM(const char *filename, int ascii) const
       fprintf(stderr, "Unable to open image file: %s", filename);
       return 0;
     }
-    
-    // Print PPM image file 
+
+    // Print PPM image file
     // First ppm pixel is top-left, so write in opposite scan-line order
     fprintf(fp, "P6\n");
     fprintf(fp, "%d %d\n", width, height);
@@ -1525,13 +1580,13 @@ WritePPM(const char *filename, int ascii) const
         fprintf(fp, "%c%c%c", r, g, b);
       }
     }
-    
+
     // Close file
     fclose(fp);
   }
 
   // Return success
-  return 1;  
+  return 1;
 }
 
 
@@ -1543,7 +1598,7 @@ WritePPM(const char *filename, int ascii) const
 
 // #define USE_JPEG
 #ifdef USE_JPEG
-  extern "C" { 
+  extern "C" {
 #   define XMD_H // Otherwise, a conflict with INT32
 #   undef FAR // Otherwise, a conflict with windows.h
 #   include "jpeg/jpeglib.h"
@@ -1597,7 +1652,7 @@ ReadJPEG(const char *filename)
     return 0;
   }
 
-  // Read scan lines 
+  // Read scan lines
   // First jpeg pixel is top-left, so read pixels in opposite scan-line order
   while (cinfo.output_scanline < cinfo.output_height) {
     int scanline = cinfo.output_height - cinfo.output_scanline - 1;
@@ -1659,7 +1714,7 @@ ReadJPEG(const char *filename)
 }
 
 
-	
+
 
 int R2Image::
 WriteJPEG(const char *filename) const
@@ -1687,7 +1742,7 @@ WriteJPEG(const char *filename) const
   cinfo.optimize_coding = TRUE;
   jpeg_set_quality(&cinfo, 95, TRUE);
   jpeg_start_compress(&cinfo, TRUE);
-	
+
   // Allocate unsigned char buffer for reading image
   int rowsize = 3 * width;
   if ((rowsize % 4) != 0) rowsize = (rowsize / 4 + 1) * 4;
