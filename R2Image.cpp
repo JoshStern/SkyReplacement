@@ -319,14 +319,9 @@ Brighten(double factor)
 
 void R2Image::
 BinaryThreshold() {
-<<<<<<< HEAD
 
   //First blur the image:
   this->Blur(2.0); 
-=======
-  //First blur the image
-  this->Blur(5.0);
->>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
 
   R2Pixel thresh(0,0,0,1);
   //Do a general search of image to find a decent max pixel
@@ -403,33 +398,19 @@ SkyReplace(vector<R2Image*>* imageList) {
   R2Image* binaryImage;
   int feature_i = 0;
 
-<<<<<<< HEAD
-  double skyScale = 0.8;
+  double skyScale = 2.0;
+  int xOffset = width/8;
+  int yOffset = height/7;
 
   for(int i = 0; i < images.size(); i++)
   {
-=======
-  for (int i = 0; i < images.size(); i++) {
->>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
     // first image
     if (i == 0) {
       printf("IF I: %d\n", i);
       binaryImage = new R2Image(*images[0]);
       images.at(i)->Feature(2, prevPointList, NSELECTED);
 
-<<<<<<< HEAD
-=======
-      for (int p = 0; p < NSELECTED; p++) {
-        for (int m = -3; m < 3; m++) {
-          for (int n = -3; n < 3; n++) {
-            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
-          }
-        }
-      }
-
->>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
       nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
-
 
       for (int j = 0; j < 9; j++) {
           printf("currh[%d] = %f\n", j, currH[j]);
@@ -437,20 +418,25 @@ SkyReplace(vector<R2Image*>* imageList) {
       binaryImage->BinaryThreshold();
 
       // set texture for first image immediately
-<<<<<<< HEAD
       for(int j=0; j<images.at(i)->width; j++) 
       {
         for(int k=0;k<images.at(i)->height;k++) 
         {
           if(binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) 
           {
-            images.at(i)->SetPixel(j,k, Pixel(j*skyScale,k*skyScale));
-=======
-      for (int j = 0; j < images.at(i)->width; j++) {
-        for (int k = 0; k < images.at(i)->height; k++) {
-          if (binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-            images.at(i)->SetPixel(j,k, Pixel(j,k));
->>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
+            x = j; y = k;
+            x += xOffset; y += yOffset;
+            x *= skyScale; y *= skyScale;
+            if(x < 0)
+              x=0;
+            if(y < 0)
+              y=0;
+            if(x >= width)
+              x=width-1;
+            if(y >= height)
+              y=height-1;
+            
+            images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
           }
         }
       }
@@ -488,8 +474,6 @@ SkyReplace(vector<R2Image*>* imageList) {
       nextH = images.at(i)->TrackPoints(prevPointList, NSELECTED, images.at(i+1), currentPointList);
       binaryImage = new R2Image(*images[i]);
       binaryImage->BinaryThreshold();
-<<<<<<< HEAD
-      
 
       // APPLY H MATRIX
       for(int j=0; j<images.at(i)->width; j++) 
@@ -503,34 +487,18 @@ SkyReplace(vector<R2Image*>* imageList) {
             z = (j)*currH[6] + (k)*currH[7] + 1*currH[8];
 
             x /= z; y /=z;
+            x += xOffset; y += yOffset;
             x *= skyScale; y *= skyScale;
-            if(x > 0 && x < images.at(i)->width && y > 0 && y < images.at(i)->height){
-=======
-
-      for (int p = 0; p < NSELECTED; p++) {
-        for (int m = -3; m < 3; m++) {
-          for (int n = -3; n < 3; n++) {
-            images.at(i)->SetPixel(prevPointList[p]%(images.at(i)->width)+m, prevPointList[p]/(images.at(i)->width)+n, red);
-          }
-        }
-      }
-
-
-      // APPLY H MATRIX
-      for (int j=0; j<images.at(i)->width; j++) {
-        for (int k=0;k<images.at(i)->height;k++) {
-          if (binaryImage->Pixel(j,k) == R2Pixel(1,1,1,1)) {
-            x = j*currH[0] + k*currH[1] + 1*currH[2];
-            y = j*currH[3] + k*currH[4] + 1*currH[5];
-            z = j*currH[6] + k*currH[7] + 1*currH[8];
-
-            x /= z; y /=z;
-
-            if (x > 0 && x < images.at(i)->width &&
-                y > 0 && y < images.at(i)->height) {
->>>>>>> d0f8f271048666ffde4d6027cd8f868978ff67cf
-              images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
-            }
+            if(x < 0)
+              x=0;
+            if(y < 0)
+              y=0;
+            if(x >= width)
+              x=width-1;
+            if(y >= height)
+              y=height-1;
+            
+            images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
           }
         }
       }
@@ -563,11 +531,18 @@ SkyReplace(vector<R2Image*>* imageList) {
             z = j*currH[6] + k*currH[7] + 1*currH[8];
 
             x /= z; y /=z;
-
-            if (x > 0 && x < images.at(i)->width &&
-                y > 0 && y < images.at(i)->height) {
-              images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
-            }
+            x += xOffset; y += yOffset;
+            x *= skyScale; y *= skyScale; 
+            if(x < 0)
+              x=0;
+            if(y < 0)
+              y=0;
+            if(x > width)
+              x=width-1;
+            if(y > height)
+              y=height-1;
+            
+            images.at(i)->SetPixel(j,k, Pixel((int)x,(int)y));
           }
         }
       }
