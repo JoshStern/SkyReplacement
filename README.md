@@ -11,7 +11,6 @@ Take in a sequence of JPEG images and replace a high contrast sky with another t
   2. Frame to Frame data structure
   3. Sky isolation
   4. Texture application
-  5. Actual algorithm
 
 ##Algorithm Flow
 1. Threshold each image as to isolate the sky (allowing us to do multiplication for replacement)
